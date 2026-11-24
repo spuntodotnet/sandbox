@@ -13,7 +13,7 @@ import { ensureHost } from "./host"
 import { ms, run } from "./host-commands"
 import { createInBackground, removeVm } from "./lifecycle"
 import { destroyMem } from "./memory"
-import { freeNet } from "./network"
+import { freeNet, netOf } from "./network"
 import { Build, Vm, reg, save, serial, vmOf } from "./registry"
 import { canLoad, cleanShutdown, finishStop, freezeDisks, freezeTemplate, sameKernel } from "./snapshots"
 import { boxUsage } from "./usage"
@@ -416,4 +416,10 @@ export const engine: Engine = {
     const builds = Object.values(r.builds).map(({ pre: _p, post: _q, ...b }) => b)
     return { kernel: { ...GUEST_KERNEL, id: kernelId }, vms: Object.values(r.vms).map(strip), templates: Object.values(r.templates), images: Object.values(r.images), builds }
   },
+}
+
+/** The network namespace a box's VMM runs in (`fc<n>`): where its guest, 172.16.0.2, is reached from. */
+export function netnsOf(handle: string): string | undefined {
+  const vm = reg().vms[handle]
+  return vm ? netOf(vm.net).netns : undefined
 }

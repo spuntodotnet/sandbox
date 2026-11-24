@@ -150,6 +150,18 @@ export async function spawnVmm(vm: Vm) {
 }
 
 /**
+ * What else a box reads from MMDS, under `/sandbox/…`, at every boot (`at: "boot"`) and every load
+ * of a RAM (`"load"`): what the caller's bootstrap needs and the env should not carry — Spunto
+ * Sandbox's daemon hands its guest agent there at a boot (a load has it running already). None by
+ * default: the data store holds `spunto` alone. Its whole size stays under `--mmds-size-limit`
+ * (4 MiB, `FC_ARGS`), `spunto` included.
+ */
+let guestData: ((at: "boot" | "load", handle: string) => Record<string, string> | undefined) | undefined
+export function setGuestData(fn: typeof guestData) {
+  guestData = fn
+}
+
+/**
  * What the box reads from MMDS: a new generation every boot and load, and its env. `resume:
  * "reconnect"` on a load of its own RAM: the platform dropped the agent's connection when it stopped
  * the box, so the agent dials at once instead of probing a dead socket first (§ 4.4). `resume:
@@ -160,7 +172,9 @@ export function mmdsData(vm: Vm, opts: { resume?: boolean; reidentify?: boolean 
   const env = Object.entries(vm.env)
     .map(([k, v]) => `${k}=${q(v)}`)
     .join("\n")
+  const extra = guestData?.(opts.resume === undefined && !opts.reidentify ? "boot" : "load", vm.handle)
   return {
+    ...(extra ? { sandbox: extra } : {}),
     spunto: {
       generation: randomBytes(6).toString("hex"),
       now: String(Math.floor(Date.now() / 1000)),

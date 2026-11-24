@@ -190,3 +190,23 @@ describe("what is baked into every image's disk", () => {
     expect(createHash("sha256").update(`${GUEST_INIT}\n${UNPACK_INIT}`).digest("hex")).toBe("e0281f67b3d3526f12f708f2b1c44eee1c146543ccf1252bdfc738af5ae1db9c")
   })
 })
+
+describe("what the guest reads from MMDS", () => {
+  const vm = { handle: "sbx-a", name: "a", env: { SPUNTO_SANDBOX_TOKEN: "t" }, bootstrap: "true" } as never
+  it("holds `spunto` alone unless the caller adds to it", async () => {
+    expect(Object.keys(_test.mmdsData(vm))).toEqual(["spunto"])
+  })
+  it("adds the caller's data under `sandbox`, saying whether the box boots or loads its RAM", async () => {
+    const { setGuestData } = await import("../src/engine")
+    const seen: string[] = []
+    setGuestData((at) => (seen.push(at), { agent: at === "boot" ? "blob" : "" }))
+    try {
+      expect(_test.mmdsData(vm).sandbox).toEqual({ agent: "blob" })
+      expect(_test.mmdsData(vm, { resume: true }).sandbox).toEqual({ agent: "" })
+      _test.mmdsData(vm, { reidentify: true })
+      expect(seen).toEqual(["boot", "load", "load"])
+    } finally {
+      setGuestData(undefined)
+    }
+  })
+})

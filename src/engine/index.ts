@@ -42,9 +42,13 @@
  *   usage       what each box uses, measured on the host
  *   host        host setup at first use (kernel, jailer, datasets, network rules)
  *   engine      the operations
+ *
+ * `§ n` in comments: a section of the design notes this engine grew from (Spunto's RFC 0039, where
+ * each choice was measured on real machines) — summarized on the documentation's Design notes page.
  */
 
-export { engine } from "./engine"
+export { engine, netnsOf } from "./engine"
+export { BIN, GUEST_IP, STATE, DATASET, SLICE } from "./config"
 export * from "./types"
 export { IFB_UP, IFB_DOWN, GUEST_KERNEL, SIZES, sizeOf, rootSizeFor, maxDiskGb, bytesOf } from "./config"
 export { JAILER_RELEASE, uidOf, jailIdOf, blockDeviceOf, cpuLimits } from "./jail"
@@ -53,7 +57,7 @@ export { firecrackerHostInfo as hostInfo, firecrackerHostInfo, boxUsage, unitCgr
 export { netOf, uplinkAddresses, tapOwnerOf, netShaping, netClassOf, redirectsTo, smtpOpen, BLOCKED_DESTINATIONS } from "./network"
 export { GUEST_INIT, UNPACK_INIT } from "./guest"
 export { IMAGE_REF, ConsoleTail, repositoryOf } from "./images"
-export { BALLOON, kernelArgs, deathOf } from "./vmm"
+export { BALLOON, kernelArgs, deathOf, setGuestData } from "./vmm"
 export { admitMibFor, memoryRoom, droppableCache, overcommitRatio, announcedFits } from "./admission"
 export { scratchProblem, inMem, vmmPath } from "./memory"
 export { canLoad, sameKernel, ramKindOf, migrateLegacyMemory } from "./snapshots"
