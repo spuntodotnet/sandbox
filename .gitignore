@@ -1,0 +1,6 @@
+node_modules/
+dist/
+kernel/out/
+guest/bin/
+*.tgz
+.DS_Store

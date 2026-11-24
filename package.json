@@ -1,0 +1,33 @@
+{
+  "name": "@spunto/sandbox",
+  "version": "0.1.0",
+  "description": "Firecracker microVMs on your own Linux machine: an OCI image in, a microVM in seconds. A pause keeps the memory, a fork copies a running VM. The engine behind Spunto Cloud.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": { "type": "git", "url": "git+https://github.com/coderhammer/spunto-sandbox.git" },
+  "homepage": "https://sandbox.spunto.net",
+  "keywords": ["firecracker", "microvm", "sandbox", "kvm", "zfs", "snapshot", "agents"],
+  "engines": { "node": ">=22" },
+  "bin": {
+    "sbx": "dist/sbx.mjs",
+    "spunto-sandboxd": "dist/sandboxd.mjs"
+  },
+  "exports": {
+    ".": { "types": "./dist/types/client/index.d.ts", "default": "./dist/client.mjs" },
+    "./engine": { "types": "./dist/types/engine/index.d.ts", "default": "./dist/engine.mjs" }
+  },
+  "files": ["dist", "install.sh", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev:daemon": "tsx src/daemon/main.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.20.7",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

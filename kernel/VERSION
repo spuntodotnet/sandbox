@@ -1,0 +1,9 @@
+# Sourced by build.sh and read by the CI workflow (fc-kernel.yml). The published artifact is
+# ghcr.io/coderhammer/spunto-fc-kernel:<LINUX_VERSION>-<SPUNTO_REVISION>. A change to any config
+# file of this directory bumps SPUNTO_REVISION; a new kernel resets it to s1.
+LINUX_VERSION=6.18.55
+LINUX_SHA256=f410638061a165c12f42ab871d2f3fcd525515359b5faeee80969cff84524df9
+SPUNTO_REVISION=s2
+# gcc 14 (Debian), by digest: the compiler is part of what makes the build reproducible.
+BUILDER_IMAGE=gcc:14@sha256:6f37e44a9b41181de5dd97366ec732652f5d895a72b5549c64694efed50a97e8
+BUILD_TIMESTAMP="2026-10-10 00:00:00 UTC"
