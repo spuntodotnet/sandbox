@@ -1,0 +1,7 @@
+**/node_modules
+docs/.next
+docs/out
+docs/.source
+dist
+kernel/build
+.git

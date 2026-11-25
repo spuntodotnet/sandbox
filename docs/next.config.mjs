@@ -6,6 +6,8 @@ const withMDX = createMDX();
 const config = {
   output: 'export',
   reactStrictMode: true,
+  // The home is @spunto/brand-kit's (TypeScript source, like the design system it builds on).
+  transpilePackages: ['@spunto/brand-kit', '@spunto/design-system'],
 };
 
 export default withMDX(config);

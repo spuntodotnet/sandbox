@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, JetBrains_Mono } from 'next/font/google';
 import { Provider } from '@/components/provider';
 import './global.css';
+import './brand-fonts.css';
 
 const sans = Geist({ subsets: ['latin'], variable: '--font-sans' });
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });

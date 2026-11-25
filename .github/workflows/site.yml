@@ -1,0 +1,47 @@
+name: Site
+
+# sandbox.spunto.net: the docs site (docs/) and install.sh in one nginx image. On main, the image is pushed to
+# Artifact Registry (GitHub OIDC, no key: secrets set by the nouveau-projet skill's gcp-ci.sh); the ops stack of
+# test-2 (coderhammer/work, service `sandbox-site`) pulls `app:latest` every 2 min and switches to it once healthy.
+# A PR only builds it (the `docs` job of ci.yml builds the site itself).
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", "install.sh", "Dockerfile", ".dockerignore", ".github/workflows/site.yml"]
+  pull_request:
+    paths: ["docs/**", "install.sh", "Dockerfile", ".dockerignore", ".github/workflows/site.yml"]
+  workflow_dispatch:
+
+env:
+  GAR_REGISTRY: europe-west1-docker.pkg.dev/mythic-emissary-382620/sandbox-site
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Google Cloud
+        if: github.event_name != 'pull_request'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - name: Docker to Artifact Registry
+        if: github.event_name != 'pull_request'
+        run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+      - uses: docker/build-push-action@v6
+        with:
+          # the revision, read by test-2's deployer and obs's Services page
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.GAR_REGISTRY }}/app:${{ github.sha }}
+            ${{ env.GAR_REGISTRY }}/app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
