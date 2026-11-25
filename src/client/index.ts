@@ -102,7 +102,8 @@ export class SandboxClient {
   }
 
   private target(path: string): http.RequestOptions & { lib: typeof http | typeof https } {
-    if (this.host.startsWith("unix://")) return { lib: http, socketPath: this.host.slice("unix://".length), path }
+    // No keep-alive on the socket: a script that is done exits at once (a connection costs nothing there).
+    if (this.host.startsWith("unix://")) return { lib: http, socketPath: this.host.slice("unix://".length), path, agent: false }
     const u = new URL(this.host)
     return { lib: u.protocol === "https:" ? https : http, hostname: u.hostname, port: u.port, path: `${u.pathname.replace(/\/$/, "")}${path}` }
   }
@@ -190,8 +191,8 @@ export class SandboxProcess {
           if (f.type === T.ready) this.pid = json(f.payload).pid
           else if (f.type === T.stdout) this.listeners.stdout.forEach((l) => l(f.payload))
           else if (f.type === T.stderr) this.listeners.stderr.forEach((l) => l(f.payload))
-          else if (f.type === T.exit) ((done = true), resolve(json(f.payload)), stream.end())
-          else if (f.type === T.error) ((done = true), reject(new Error(json(f.payload).message)), stream.end())
+          else if (f.type === T.exit) ((done = true), resolve(json(f.payload)), stream.destroy())
+          else if (f.type === T.error) ((done = true), reject(new Error(json(f.payload).message)), stream.destroy())
         }
       })
       stream.on("close", () => done || reject(new Error("the connection to the sandbox closed before the process ended")))
@@ -289,6 +290,7 @@ export class Sandbox {
         s.write(frame(T.data, chunk), cb)
       },
       final(cb) {
+        if (s.writableEnded || s.destroyed) return cb()
         s.write(frame(T.close), () => cb())
       },
       destroy(err, cb) {
@@ -300,7 +302,7 @@ export class Sandbox {
       for (const f of reader.push(c)) {
         if (f.type === T.ready) ready()
         else if (f.type === T.stdout) d.push(f.payload)
-        else if (f.type === T.exit) (d.push(null), s.end())
+        else if (f.type === T.exit) (d.push(null), s.destroy())
         else if (f.type === T.error) {
           const e = new Error(json(f.payload).message)
           failed(e)
