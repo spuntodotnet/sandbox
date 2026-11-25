@@ -95,7 +95,8 @@ describe.skipIf(!have)("the guest agent", () => {
   it("starts a detached command that outlives the call, its output in a log", async () => {
     const r = await run({ op: "exec", cmd: ["sh", "-c", "sleep 0.2; echo bg"], detach: true, cwd: "/" })
     expect(r.exit).toMatchObject({ code: 0, pid: expect.any(Number), log: expect.stringMatching(/\/log\/\d+\.log$/) })
-    await new Promise((res) => setTimeout(res, 400))
+    // A loaded runner is slow: up to 5 s for it to write.
+    for (let i = 0; i < 50 && readFileSync(r.exit.log!, "utf8") === ""; i++) await new Promise((res) => setTimeout(res, 100))
     expect(readFileSync(r.exit.log!, "utf8")).toBe("bg\n")
   })
 
