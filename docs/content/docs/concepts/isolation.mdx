@@ -1,0 +1,71 @@
+---
+title: Networking and isolation
+description: The security model — what a box can reach, and what reaches it.
+---
+
+**The threat model**: the code in a box is not trusted. An agent can be prompted into anything, a
+dependency can be malicious. The host, the other boxes, and the networks the host sits on must not be
+reachable from a box, even by a box that has root in its own guest.
+
+## The VMM
+
+- **Firecracker**: a minimal virtual machine monitor (virtio block and net, a serial console, MMDS,
+  a balloon), with its default seccomp filter.
+- **Under the jailer**: each VMM is `chroot`ed into a directory of its own, runs as a **uid and gid of
+  its own** (2 000 000 000 + its network number), with **no capability**. Its disks appear in its
+  chroot as device nodes owned by that uid; the kernel is bound in read-only; its memory files are
+  bound in for the length of a snapshot call only.
+- **In a systemd unit of its own**, in `vms.slice`: its memory, CPU and network are bounded
+  ([Resources](/docs/concepts/resources)).
+- **No nested virtualization** for the guests (the installer turns it off): a KVM surface no box needs.
+
+## The network
+
+Every box has its own network namespace, and the same inside: the guest is `172.16.0.2`, its gateway
+`172.16.0.1`, fixed MAC addresses — so a snapshot loads anywhere, and two copies of a box do not
+collide. Each namespace leaves through a veth on its own `/30` of `10.89.0.0/16`, NATed out of the
+host's uplink.
+
+| From a box to | |
+|---|---|
+| the internet | **allowed**, its share of the uplink |
+| `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` | dropped — the provider's LAN, a VPN, Docker bridges |
+| `100.64.0.0/10` (CGNAT) | dropped |
+| `169.254.0.0/16` | dropped — a cloud's metadata server (and its service account's credentials) |
+| the host, on any of its addresses | dropped |
+| another box | dropped |
+| port 25 (SMTP) | rejected; 465 and 587 (submission, authenticated) stay open |
+
+**Nothing comes in.** No port of a box is published on the host. The host reaches a box from its
+namespace — that is how the daemon talks to its agent, and how `sbx port-forward` and
+`box.connect()` reach a port. Inside the namespace, nothing the guest sends is accepted unless it
+answers a connection the host opened.
+
+No IPv6 in the boxes.
+
+## The image and the disks
+
+- **An image is never unpacked on the host.** The host makes an empty ext4 volume; a throwaway
+  microVM (the *unpacker*, read-only root made by the host from files it trusts) pulls the image
+  with `crane` and untars it there. A hostile archive — `etc -> /`, absolute symlinks, device files —
+  only ever reaches that VM.
+- **The host never mounts a disk a guest wrote**: it clones it, snapshots it, sends it; it never
+  parses its filesystem.
+- Images are pulled anonymously: private registries are not supported yet.
+
+## Identity and secrets
+
+- A box's env, its agent's token included, goes in **MMDS**, never on its disk or a command line:
+  a disk snapshot or a clone carries no token, and `ps` on the host shows none.
+- Each box's agent token is derived from the daemon's secret and the box's id: a fork's copy gets
+  its own, and the source's stops working there.
+- The daemon's state (`/var/lib/spunto-sandbox/sandboxd.json`) and the engine's registry hold every
+  box's env: root only, mode 600.
+- Everyone in the `spunto-sandbox` group can run anything in any box: it is the boundary.
+
+## What remains
+
+- The unpacker reaches the internet (that is where images come from); it holds no secret.
+- The host's GNU tar is copied into the unpacker with its libraries: it follows the host's updates,
+  it is not pinned.
+- A guest has root in its own VM — by design: it is the user's machine.

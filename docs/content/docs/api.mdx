@@ -1,0 +1,84 @@
+---
+title: REST API
+description: The daemon's API, on its unix socket or TCP.
+---
+
+```sh
+curl --unix-socket /run/spunto-sandbox.sock http://sbx/v1/sandboxes
+curl -H "Authorization: Bearer $SBX_TOKEN" http://host:7070/v1/sandboxes   # with SBX_LISTEN
+```
+
+JSON in and out. `{id}` is a sandbox's id or name. The full spec: [`openapi.yaml`](https://github.com/spuntodotnet/sandbox/blob/main/openapi.yaml).
+
+Errors: `{ "error": { "code", "message" } }`
+
+| Status | `code` | |
+|---|---|---|
+| 400 | `invalid` | a bad request, or one the box's state refuses (pausing a stopped box) |
+| 401 | `unauthorized` | TCP without the right bearer token |
+| 404 | `not_found` | no such sandbox, snapshot, build or route |
+| 409 | `capacity` | this machine has no room for it now (memory, pool): try later, or elsewhere |
+| 502 | `upstream` | the engine or the box failed: the message says how |
+
+Calls that change a state (`POST /v1/sandboxes`, `start`, `pause`, `stop`, `fork`) answer once it is
+done; `?wait=false` answers at once, and `GET` follows (`state`, `transition`).
+
+## Sandboxes
+
+| | |
+|---|---|
+| `GET /v1/sandboxes` | list |
+| `POST /v1/sandboxes` | make one: `{ image, name?, size?, env?, labels?, from? }` |
+| `GET /v1/sandboxes/{id}` | one |
+| `DELETE /v1/sandboxes/{id}` | destroy |
+| `POST /v1/sandboxes/{id}/pause` | stop, keeping its memory |
+| `POST /v1/sandboxes/{id}/resume` · `/start` | run again |
+| `POST /v1/sandboxes/{id}/stop` | clean shutdown, memory dropped |
+| `POST /v1/sandboxes/{id}/fork` | `{ name? }` → the copy, running |
+| `POST /v1/sandboxes/{id}/snapshots` | `{ name?, memory? }` → a snapshot |
+| `POST /v1/sandboxes/{id}/exec` | `{ cmd, env?, cwd?, user?, stdin?, timeoutMs?, detach? }` → `{ exitCode, stdout, stderr, durationMs }` |
+| `POST /v1/sandboxes/{id}/attach` | an upgrade to the agent's frames (below) |
+| `GET /v1/sandboxes/{id}/files?path=` | a file's bytes (`X-Sbx-Mode`) |
+| `PUT /v1/sandboxes/{id}/files?path=&mode=` | write one: the body is its content |
+| `POST /v1/sandboxes/{id}/grow` | `{ rootGb?, workspaceGb? }` |
+| `GET /v1/sandboxes/{id}/logs?lines=` | its serial console, text |
+| `GET /v1/sandboxes/{id}/usage` | its counters, measured on the host |
+
+A sandbox:
+
+```json
+{
+  "id": "az95j38feo", "name": "hello", "image": "ubuntu:24.04", "size": "small",
+  "handle": "sbx-az95j38feo", "state": "stopped", "ram": "saved",
+  "detail": "memory saved — a start resumes it",
+  "env": { "GREETING": "…" }, "createdAt": "2026-11-24T23:56:07.655Z",
+  "timings": { "createMs": 5722, "pauseMs": 1, "stopRamMs": 96, "stopBootMs": 728 },
+  "tookMs": 819
+}
+```
+
+`ram: "saved"` with `state: "stopped"` is a **paused** box. Env values never come back: names only.
+
+## Snapshots, builds, the machine
+
+| | |
+|---|---|
+| `GET /v1/snapshots` · `GET/DELETE /v1/snapshots/{id}` | `{ id, name, sandboxId, kind: memory\|disks, state: pending\|ready\|error }` |
+| `POST /v1/builds` | `{ image, script, size? }` → `{ id }` |
+| `GET /v1/builds/{id}?cursor=` | `{ state, phase, log, cursor }` — the log from `cursor` on |
+| `DELETE /v1/builds/{id}` | |
+| `GET /v1/host` | the kernel, the pool, the memory the boxes hold, network limits, usage per box |
+| `GET /v1/sizes` · `GET /v1/health` | |
+
+## Streams: `attach`
+
+An interactive command, a terminal, a tunnel to a port: `POST /v1/sandboxes/{id}/attach` with
+`Connection: Upgrade` and `Upgrade: sbx-agent/1`. After `101 Switching Protocols`, the connection
+carries the [guest agent's frames](/docs/guest-agent#the-protocol) both ways: send a hello **without a
+token** — the daemon adds the box's — then data, resize and signal frames; read ready, stdout, stderr
+and exit frames.
+
+```ts
+// What SandboxProcess does, by hand:
+const socket = await client.attach("hello", { op: "exec", cmd: ["bash", "-l"], tty: { rows: 40, cols: 120 } })
+```

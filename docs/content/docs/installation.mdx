@@ -1,0 +1,93 @@
+---
+title: Installation
+description: What the machine needs, what the installer does, upgrades, removal.
+---
+
+## Requirements
+
+| | |
+|---|---|
+| CPU | x86_64 with hardware virtualization: `/dev/kvm` must exist |
+| Where | bare metal, or a cloud VM with nested virtualization (GCP: `--enable-nested-virtualization`; most clouds have an equivalent or a metal instance) |
+| OS | Linux with systemd and cgroup v2: Ubuntu 22.04+, Debian 12+ (others work; the installer only knows `apt` for missing packages) |
+| Storage | **ZFS**: a pool of yours, or a pool in a file made by the installer (`--create-pool`) |
+| Memory | what the boxes need: they start at their size's announced RAM but only take what their guest touches |
+
+The installer checks each of these and says what is missing.
+
+## Install
+
+```sh
+curl -fsSL https://sandbox.spunto.net/install.sh | sudo sh
+```
+
+| Option | Environment | |
+|---|---|---|
+| `--create-pool <size>` | `SBX_CREATE_POOL` | no ZFS pool: make `sandbox` in `/var/lib/spunto-sandbox/pool.img`, sparse. To try it; a real disk is faster |
+| `--dataset <pool/name>` | `SPUNTO_FC_DATASET` | where everything goes. Default: `<first pool>/spunto` |
+| `--memory <size>` | `SBX_MEMORY` | what all boxes may take together (`vms.slice`). Default: RAM − 2 GB |
+| `--version <v>` | `SBX_VERSION` | a release; default the latest |
+| `--from <dir>` | `SBX_FROM` | a `dist/` you built (`npm run build`) instead of a release |
+
+<Callout title="A pool of your own">
+On a disk or a partition you can give it: `zpool create -o ashift=12 -O compression=lz4 sandbox /dev/nvme1n1`.
+Then run the installer: it picks the pool up.
+</Callout>
+
+## What it installs
+
+| Path | What |
+|---|---|
+| `/opt/spunto-fc/bin` | `firecracker`, `jailer`, `snapshot-editor` (Firecracker v1.17.0), `tini`, a static `busybox`, `crane` |
+| `/opt/spunto-fc/node` | the daemon's own Node runtime (v24) |
+| `/opt/spunto-fc/kernels` | the guest kernel — fetched by the daemon at its start, checked against its pinned sha256 |
+| `/opt/spunto-sandbox` | `sandboxd.mjs`, `sbx.mjs`, `sbx-agent` |
+| `/usr/local/bin/sbx` | the CLI |
+| `/etc/spunto-sandbox/sandboxd.env` | the daemon's [settings](/docs/configuration) (root only) |
+| `/etc/systemd/system/spunto-sandboxd.service` | the service |
+| `/etc/systemd/system/vms.slice` | the slice every microVM runs in, and its memory ceiling |
+| `/var/lib/spunto-fc` | the engine's state: its registry, memory files mounts, jails |
+| `/var/lib/spunto-sandbox` | the daemon's state: its sandboxes, snapshots, builds, the secret their tokens derive from |
+| `<pool>/spunto` | ZFS: images, disks, `/workspace` volumes, memory files, templates, builds |
+
+It also makes the group `spunto-sandbox` (adding the user who ran `sudo`), and turns nested
+virtualization off for the guests (`/etc/modprobe.d/spunto-kvm-nested.conf`, at the next reboot): a
+KVM surface no box needs.
+
+## Who may use it
+
+The API listens on `/run/spunto-sandbox.sock`, which **root and the `spunto-sandbox` group** may
+use. Being in that group is being able to run anything in any sandbox, and to make sandboxes that
+take the machine's memory: give it as you would `docker`.
+
+To reach the daemon from another machine, give it a TCP address and a token:
+
+```sh title="/etc/spunto-sandbox/sandboxd.env"
+SBX_LISTEN=0.0.0.0:7070
+SBX_API_TOKEN=<a long random string>
+```
+
+```sh
+sudo systemctl restart spunto-sandboxd
+SBX_HOST=http://that-machine:7070 SBX_TOKEN=… sbx ls
+```
+
+Put TLS in front of it (a reverse proxy) unless the network between is yours.
+
+## Upgrade
+
+Run the installer again. It replaces the binaries and restarts the daemon; **sandboxes keep
+running** (each VMM is a systemd unit of its own). A box gets the new guest agent at its next cold
+boot; a resumed one keeps the agent it had.
+
+## Remove
+
+```sh
+for b in $(sbx ls --json | jq -r '.[].id'); do sbx rm "$b"; done
+sudo systemctl disable --now spunto-sandboxd
+sudo zfs destroy -r <pool>/spunto            # every image, disk and memory file
+# a pool made by --create-pool, instead: sudo zpool destroy sandbox
+sudo rm -rf /opt/spunto-fc /opt/spunto-sandbox /var/lib/spunto-fc /var/lib/spunto-sandbox /etc/spunto-sandbox
+sudo rm -f /usr/local/bin/sbx /etc/systemd/system/spunto-sandboxd.service /etc/systemd/system/vms.slice /etc/modprobe.d/spunto-kvm-nested.conf
+sudo systemctl daemon-reload
+```

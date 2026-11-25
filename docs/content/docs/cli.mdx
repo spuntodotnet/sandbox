@@ -1,0 +1,133 @@
+---
+title: CLI reference
+description: Every sbx command.
+---
+
+`sbx` talks to the daemon on `/run/spunto-sandbox.sock` (root, or the `spunto-sandbox` group), or to
+`SBX_HOST` (`http://host:7070`) with `SBX_TOKEN`. `--host` and `--token` override them; `--json`
+prints what the API answered. A sandbox is named by its id or its name.
+
+Exit codes: `0` done, `1` failed (the message says why), `3` no such sandbox; `exec`, `shell` and
+`run … -- cmd` exit with the command's own code.
+
+## Sandboxes
+
+### `sbx run <image> [-- cmd…]`
+
+Make a sandbox and wait until it runs and its agent answers. With a command, run it there (streamed),
+and exit with its code.
+
+| | |
+|---|---|
+| `--name <n>` | lowercase letters, digits, dashes; default: its id |
+| `--size <s>` | `small` (default), `default`, `large`, `xlarge` |
+| `-e KEY=VALUE` | its environment (repeat); `-e KEY` takes the value from here |
+| `--from <snapshot\|build>` | start from a snapshot (its image too) or a build |
+| `--rm` | with a command: destroy the sandbox once it ends |
+| `-it` | with a command: a terminal |
+
+```sh
+sbx run node:24 --name api -e NODE_ENV=production
+sbx run alpine:3.20 --rm -- sh -c 'cat /etc/alpine-release'
+```
+
+### `sbx ls`
+
+`NAME ID STATE SIZE IMAGE AGE`. `STATE` says `paused` for a box stopped with its memory, `pausing`
+or `stopping` during one.
+
+### `sbx inspect <sandbox>`
+
+Everything the API knows of it, as JSON: state, detail, `ram`, timings, env names.
+
+### `sbx exec <sandbox> -- cmd…`
+
+Run a command, streamed: stdout and stderr apart, stdin forwarded when it is not a terminal, Ctrl-C
+sent as `SIGINT`. Exits with its code.
+
+| | |
+|---|---|
+| `-it` | a terminal (a pty of the terminal's size, resized with it) |
+| `-e KEY=VALUE` | more environment |
+| `-w <dir>` | its directory (default `/workspace`) |
+| `-u <user>` | a user of the box's `/etc/passwd` (default root) |
+
+```sh
+sbx exec api -- npm test
+echo 'print(2**64)' | sbx exec py -- python3
+```
+
+### `sbx shell <sandbox>`
+
+An interactive login shell: `bash -l` if the image has bash, `sh -l` otherwise. `-u <user>` too.
+
+### `sbx pause <sandbox>…`
+
+Stop it **keeping its memory**: nothing runs, nothing is lost. Answers once the RAM is written.
+
+### `sbx resume <sandbox>…` / `sbx start <sandbox>…`
+
+Run it again: its RAM loaded after a pause — every process carries on — its disk booted after a stop.
+Answers once its agent answers.
+
+### `sbx stop <sandbox>…`
+
+A clean shutdown: its page cache reaches the disk, its memory is dropped. A `start` boots it.
+
+### `sbx fork <sandbox> [--name <n>]`
+
+A copy of a running sandbox, running: same memory, same processes, its own disks and identity from
+now on. Says how long the source was paused.
+
+### `sbx rm <sandbox>…`
+
+Destroy: the VMM, its network, both disks, its memory files.
+
+## Snapshots and builds
+
+### `sbx snapshot <sandbox> [--name <n>] [--disks-only]`
+
+Keep it as it is now. With its memory (default): boxes from it resume with every process. With
+`--disks-only`: a pause of milliseconds, and boxes from it boot. `sbx run --from <it>`.
+
+### `sbx snapshots` / `sbx snapshots rm <snapshot>…`
+
+List (`NAME ID KIND STATE OF IMAGE AGE`; `STATE` is `pending` while its memory is written) or delete.
+
+### `sbx build <image> <script.sh> [--size <s>]`
+
+Run the script as root in a builder microVM of the image, stream its log, and keep its disk as a
+build: `sbx run --from <build>`. See [Builds](/docs/concepts/builds).
+
+## Files, ports, logs
+
+### `sbx cp <src> <dst>`
+
+One file, in or out: `sbx cp ./data.csv box:/workspace/data.csv`, `sbx cp box:/workspace/out.json .`,
+`sbx cp box:/etc/os-release -` (to stdout). A file goes in with its mode, written whole or not at all.
+
+### `sbx port-forward <sandbox> [local:]port`
+
+Listen on `127.0.0.1:<local>` and carry each connection to `<port>` inside the box (its `127.0.0.1`).
+
+```sh
+sbx port-forward api 8080:3000 &
+curl localhost:8080
+```
+
+### `sbx logs <sandbox> [-n 200]`
+
+Its serial console, from the journal: the kernel, the init, the bootstrap.
+
+### `sbx usage <sandbox>`
+
+What it uses, as the host measures it: CPU microseconds, memory (with and without droppable cache),
+network and disk counters.
+
+## This machine
+
+| | |
+|---|---|
+| `sbx host` | the daemon's and the agent's versions, the kernel, the boxes running, memory, pool, network limits |
+| `sbx sizes` | the sizes a sandbox can be made at |
+| `sbx version` | the CLI's version |

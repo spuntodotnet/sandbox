@@ -1,0 +1,58 @@
+---
+title: Resources
+description: Memory, CPU, network and disk — what a box may take, and how a machine stays fair.
+---
+
+## Memory
+
+Every VMM runs in `vms.slice`, whose `MemoryMax` is what all boxes may take together (the installer
+sets it to the machine's RAM − 2 GB). A box's size is a ceiling (its unit's `MemoryMax` is its RAM +
+256 MB for the VMM), not a reservation: a box only holds what its guest touches, and what the guest
+frees goes back (a balloon that never inflates, for its *free page reporting*).
+
+So a machine is **overcommitted** on purpose — and protected by an **admission** before every
+create, start and build:
+
+1. **Real room**: the slice's free memory (its droppable page cache counted as free, bounded by the
+   machine's `MemAvailable`) must be at least an eighth of the box's RAM, 1 GB at least.
+2. **Announced room**: the sizes of the running boxes, plus this one, must stay under the slice's
+   ceiling times `SPUNTO_FC_OVERCOMMIT` (1.5). A guest can grow into all of its size later; past this
+   ratio the kernel would have to kill one.
+
+Refused, the call fails with `capacity` (HTTP 409) and says why — never a box started that the OOM
+killer takes a minute later. What was admitted is held for 30 s, so a burst of creates cannot all
+take the same free memory. A box the OOM killer took anyway is `error`, with the reason.
+
+`SPUNTO_FC_ADMIT=0` turns the admission off; `SPUNTO_FC_ADMIT_MIN_MB`, `SPUNTO_FC_OVERCOMMIT` tune it.
+
+## CPU
+
+On every VMM's unit:
+
+- `CPUQuota` = its vCPUs + 0.5 (the VMM's own threads): never more than its size, even on an idle machine;
+- `CPUWeight=100` for every box, whatever its size: under contention, each box that wants CPU gets
+  an equal share, up to its vCPUs. A weight per vCPU would have given an 8-vCPU box eight times its
+  1-vCPU neighbour's share — what happened before, measured.
+
+`SPUNTO_FC_CPU_LIMITS=0`, `SPUNTO_FC_CPU_MARGIN`, `SPUNTO_FC_CPU_WEIGHT` (`vcpu` for a weight per vCPU).
+
+## Network
+
+Each box's traffic goes through two IFB devices (`fcifbu` up, `fcifbd` down) with one HTB class per
+box: a ceiling per box and per direction (`SPUNTO_FC_NET_MBIT`, 200 Mbit/s), and when the machine's
+part is full (`SPUNTO_FC_NET_TOTAL_MBIT`, 95 % of the link's speed), **equal shares per box** in
+bytes, however many flows each opens. The uplink's own queue is never touched. `SPUNTO_FC_NET_LIMITS=0`
+turns it off.
+
+## Disks
+
+A box's two disks are sparse ZFS volumes: they take what is written, lz4-compressed. Their size is
+their bound — a guest cannot write past its disk's end. `grow` stops at `SPUNTO_FC_MAX_ROOT_GB` (200)
+and `SPUNTO_FC_MAX_WS_GB` (500). Below `SPUNTO_FC_MIN_POOL_FREE_GB` (5) left in the pool, no new box
+and no new memory file: a full pool would fail every box's writes.
+
+## What a box uses
+
+`sbx usage <box>` (`GET /v1/sandboxes/{id}/usage`) — measured on the host, not by the guest: CPU time
+of its unit, its memory (with and without the droppable cache), its veth's bytes, its two volumes' IO
+from ZFS's own counters. Cumulative counters: take differences.

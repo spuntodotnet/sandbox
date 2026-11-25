@@ -1,0 +1,55 @@
+---
+title: Introduction
+description: Firecracker microVMs on your own Linux machine. A pause keeps the memory, a fork copies a running VM.
+---
+
+Spunto Sandbox runs **microVMs** on a Linux machine of yours, one per sandbox, from any OCI image.
+It is made for what AI agents need from a computer: a box of their own to run code in, started in
+seconds, kept for hours at the price of a disk, and copied when they want to try two things.
+
+```sh
+curl -fsSL https://sandbox.spunto.net/install.sh | sudo sh
+sbx run ubuntu:24.04 --name hello
+sbx exec hello -- uname -a
+```
+
+## What sets it apart
+
+- **A pause keeps the memory.** `sbx pause` writes the box's RAM — only the pages it dirtied since
+  it last did — and stops its VMM: it costs no memory, no CPU. `sbx resume` loads the RAM back on
+  demand, and every process carries on: a dev server, a REPL, a half-done build. On bare metal the
+  daemon resumes a box in 55 to 77 ms.
+- **A fork copies a running VM.** The source pauses for milliseconds; the copy gets its memory and
+  its disks copy-on-write, and runs the same processes under its own identity. Two lines of
+  inquiry for an agent, from the same state, for the price of what each then writes.
+- **A real VM.** Its own kernel (ours, with Docker's needs built in), its own disks, its own network
+  namespace. Each Firecracker process is jailed: a chroot, a uid of its own, no capability.
+- **Self-hosted and small.** One daemon, a socket, a CLI and an SDK. No control plane, no database,
+  no cluster: the state is a JSON file and ZFS datasets.
+
+## What it is made of
+
+| | |
+|---|---|
+| `spunto-sandboxd` | the daemon: the engine, behind a [REST API](/docs/api) on a unix socket |
+| `sbx` | the [CLI](/docs/cli) |
+| `@spunto/sandbox` | the [TypeScript SDK](/docs/sdk) |
+| `sbx-agent` | the [guest agent](/docs/guest-agent), in every box: exec, terminals, files, ports |
+| the engine | ZFS, the jailer, networks, snapshots, forks, builds: `@spunto/sandbox/engine` |
+
+The engine was written for [Spunto Cloud](/docs/spunto-cloud), where it runs every sandbox. This is
+the same code, without the platform around it.
+
+## What it is not
+
+- **Not a container runtime**: a box boots a kernel; it is heavier than a container (about 100 MB
+  of host memory for a small idle box) and much better isolated.
+- **Not a cluster scheduler**: one daemon, one machine. Put several behind your own placement.
+- **Not portable yet**: Linux x86_64 with KVM and ZFS. Not macOS, not ARM.
+
+<Cards>
+  <Card title="Quickstart" href="/docs/quickstart" description="Install it and make your first sandbox, in five minutes." />
+  <Card title="Sandboxes" href="/docs/concepts/sandboxes" description="Their lifecycle: running, paused, stopped." />
+  <Card title="Snapshots and forks" href="/docs/concepts/snapshots-and-forks" description="What a copy of a running VM costs, and how." />
+  <Card title="Design notes" href="/docs/design" description="Every choice, and how it was measured." />
+</Cards>

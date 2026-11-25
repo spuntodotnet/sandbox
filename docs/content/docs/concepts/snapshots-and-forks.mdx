@@ -1,0 +1,57 @@
+---
+title: Snapshots and forks
+description: Copies of a running VM — its memory and its disks — and what they cost.
+---
+
+Three ways to start a box from another one's state:
+
+| | Keeps | Pause of the source | A box from it |
+|---|---|---|---|
+| **fork** (`sbx fork`) | memory and disks, for **one** copy, made at once | milliseconds (only what it dirtied is written) | runs the same processes, under its own identity |
+| **memory snapshot** (`sbx snapshot`) | memory and disks, for **many** copies | the same | each resumes with the processes, a new identity each |
+| **disks snapshot** (`sbx snapshot --disks-only`) | disks only | milliseconds, whatever the box holds | boots: a cold start from those disks |
+
+```sh
+sbx fork hello --name try-a                       # one copy, now
+sbx snapshot hello --name ready                   # kept, for later
+sbx run --from ready --name try-b                 # a box from it, processes and all
+sbx snapshots                                     # kind: memory|disks, state: pending|ready
+```
+
+## How a copy is made
+
+1. **The pause.** The source is paused; its RAM is written to a scratch file — a **Diff** of the
+   pages it dirtied since its last snapshot when it has a base, all of it otherwise — without an
+   `fsync`, so at memory speed; both disks are snapshotted in ZFS in the same pause; the source
+   resumes. Measured: 63 ms for a small box with a base, 0.5 s on bare metal for a busy one.
+2. **The memory**, after the resume: the Diff is merged into the source's own memory file, which
+   is snapshotted and **cloned** for the copy (ZFS, copy-on-write: instantaneous, holes stay holes).
+   A copy of a box holding 1.5 GB of RAM took 14 MB more on disk.
+3. **The copy** clones the disks' snapshots and loads the memory. Its init finds a new identity in
+   MMDS, hands the agent its new token in place, and changes the hostname: the processes never stop.
+
+A box that was never written to a file (booted from its disk) has no base yet: its first fork,
+pause or snapshot writes everything it holds — what its guest never touched stays a hole — and that
+becomes its base.
+
+## What does not copy well
+
+Documented rather than hidden:
+
+- **Open connections.** A TCP connection in the copy has the source's four-tuple but leaves through
+  another network namespace: the peer resets it. Clients reconnect if they know how; an open `psql`
+  or a `git fetch` in flight dies in the copy (and lives on in the source).
+- **Randomness already drawn.** VMGenID reseeds the kernel's CRNG, not a process's own PRNG state:
+  UUIDs generated in batches, a session key — the same in both. Restart such a server in the copy if
+  it matters.
+- **The same machine.** RAM is local, and a snapshot only loads on the same CPU model.
+- **The hostname** changes under processes that may have read it.
+
+## Lifetimes
+
+- A **fork** nobody made a copy of within 30 minutes is deleted (its memory and the source's disk
+  snapshots would stay for good otherwise). The daemon makes the copy in the same call: it does not
+  happen there.
+- A **snapshot** stays until you delete it (`sbx snapshots rm`). Boxes made from it keep what they
+  cloned. One taken under another kernel still works: its disks boot instead of its RAM loading.
+- A box's own memory file stays while the box exists: it is the base of its next Diff.

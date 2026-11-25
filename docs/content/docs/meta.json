@@ -1,0 +1,23 @@
+{
+  "title": "Spunto Sandbox",
+  "pages": [
+    "---Get started---",
+    "index",
+    "quickstart",
+    "installation",
+    "---Concepts---",
+    "...concepts",
+    "---Reference---",
+    "cli",
+    "sdk",
+    "api",
+    "configuration",
+    "guest-agent",
+    "---Running it---",
+    "operations",
+    "benchmarks",
+    "design",
+    "contributing",
+    "spunto-cloud"
+  ]
+}

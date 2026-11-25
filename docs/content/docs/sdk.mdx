@@ -1,0 +1,117 @@
+---
+title: TypeScript SDK
+description: "@spunto/sandbox: sandboxes from Node."
+---
+
+```sh
+npm i @spunto/sandbox
+```
+
+Node 22 or later. It talks to the daemon on its unix socket by default — the process must be root or
+in the `spunto-sandbox` group — or to `SBX_HOST` / `SBX_TOKEN`.
+
+```ts
+import { Sandbox } from "@spunto/sandbox"
+
+const box = await Sandbox.create({ image: "python:3.13-slim", name: "analysis" })
+const r = await box.exec("python3 -c 'import sys; print(sys.version)'")
+console.log(r.exitCode, r.stdout)
+```
+
+## `Sandbox`
+
+### Making and finding
+
+| | |
+|---|---|
+| `Sandbox.create(opts)` | a new box, once it runs and its agent answers. `image`, `name`, `size`, `env`, `labels`, `from` (a snapshot or a build), `client` |
+| `Sandbox.get(idOrName)` | an existing one |
+| `Sandbox.list()` | all of them |
+| `box.refresh()` | read its state again (`box.info`, `box.state`) |
+| `box.destroy()` | gone: disks and memory |
+
+### Running things
+
+```ts
+// Wait for it. A string goes to /bin/sh -c; an array runs as it is.
+const { exitCode, stdout, stderr, durationMs } = await box.exec(["ls", "-la"], { cwd: "/", env: { LC_ALL: "C" }, timeoutMs: 10_000 })
+
+// Something that outlives the call: a server, a watcher. Its output stays in the box.
+const { pid, log } = await box.background("python3 -m http.server 3000")
+
+// Streamed: output as it comes, your stdin, a terminal if you want one.
+const p = await box.spawn("pytest -x", { tty: { rows: 40, cols: 120 } })
+p.on("stdout", (chunk) => process.stdout.write(chunk))
+p.write("y\n")
+const exit = await p.wait() // { code, signal? }
+```
+
+`SandboxProcess`: `on("stdout" | "stderr", fn)`, `write(data)`, `end()` (end of stdin), `resize(rows, cols)`,
+`kill(signal = "SIGTERM")` (to its process group), `wait()`, `pid`.
+
+### Files and ports
+
+```ts
+await box.files.write("/workspace/main.py", "print('hi')", { mode: "755" })
+const bytes = await box.files.read("/workspace/out.csv") // a Buffer
+
+const socket = await box.connect(3000) // a Duplex to 127.0.0.1:3000 inside the box
+socket.end("GET / HTTP/1.0\r\n\r\n")
+for await (const chunk of socket) process.stdout.write(chunk)
+```
+
+### Pausing, forking, keeping
+
+| | |
+|---|---|
+| `box.pause()` | stop it keeping its memory; resolves once the RAM is written (`{ wait: false }` at once) |
+| `box.resume()` / `box.start()` | run it again — its processes carry on after a pause |
+| `box.stop()` | a clean shutdown, memory dropped |
+| `box.fork({ name })` | a second `Sandbox`, running, same memory and processes |
+| `box.snapshot({ name, memory })` | a `SnapshotInfo` to `create({ from })` later; `memory: false` for disks only |
+| `box.grow({ rootGb, workspaceGb })` | bigger disks, running or not |
+| `box.logs(lines)` | its serial console |
+| `box.usage()` | what it uses, measured on the host |
+
+`snapshots.list()`, `snapshots.get(id)`, `snapshots.delete(id)`.
+
+## `SandboxClient`
+
+One per daemon. `Sandbox` uses a default one; pass yours to reach another:
+
+```ts
+import { Sandbox, SandboxClient } from "@spunto/sandbox"
+
+const remote = new SandboxClient({ host: "https://sandboxes.internal:7070", token: process.env.SBX_TOKEN })
+const box = await Sandbox.create({ image: "node:24", client: remote })
+```
+
+`client.call(method, path, body)` reaches any [API](/docs/api) route; `client.attach(id, hello)` opens a
+raw stream to a box's agent ([frames](/docs/guest-agent#the-protocol)).
+
+Errors are `SandboxApiError` (`status`, `code`: `not_found`, `invalid`, `capacity`, `upstream`,
+`unreachable` when the daemon is not running, `forbidden` when the socket is not yours).
+
+## An agent that tries two things
+
+```ts
+import { Sandbox } from "@spunto/sandbox"
+
+const box = await Sandbox.create({ image: "node:24", name: "task-42" })
+await box.exec("git clone https://github.com/you/app /workspace/app && cd /workspace/app && npm ci")
+await box.background("cd /workspace/app && npm run dev") // a dev server, kept across pauses
+
+// The model thinks for a while: nothing needs to run meanwhile.
+await box.pause()
+// … next turn
+await box.resume() // the dev server is still up, node_modules still warm
+
+// Two fixes to try from the same state: fork, try each, keep the one whose tests pass.
+const other = await box.fork({ name: "task-42-b" })
+const [a, b] = await Promise.all([
+  box.exec("cd /workspace/app && git apply /workspace/fix-a.patch && npm test"),
+  other.exec("cd /workspace/app && git apply /workspace/fix-b.patch && npm test"),
+])
+const loser = a.exitCode === 0 ? other : box
+await loser.destroy()
+```
