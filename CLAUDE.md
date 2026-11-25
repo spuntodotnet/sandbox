@@ -36,4 +36,5 @@ Nothing that touches a box is proven without a real machine: run `scripts/try.sh
 
 A tag `v<version>` (= package.json) → `.github/workflows/release.yml`: the tarball
 `spunto-sandbox-linux-x64.tar.gz` (sandboxd.mjs, sbx.mjs, sbx-agent) and the npm tarball, as release
-assets. Spunto vendors the npm tarball (`apps/runtime-apps/vendor/`).
+assets, and that npm tarball published as `@spunto/sandbox` (trusted publishing: no npm token, the
+workflow's OIDC identity; 0.1.1 was published by hand to create the package).
