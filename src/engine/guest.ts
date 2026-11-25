@@ -29,6 +29,11 @@ mnt cgroup2 cgroup2 /sys/fs/cgroup
 # Ctrl-Alt-Del as SIGINT to PID 1 (tini, which hands it to us), not the kernel's immediate reboot.
 echo 0 > /proc/sys/kernel/ctrl-alt-del
 [ -e /dev/fd ] || $B ln -s /proc/self/fd /dev/fd
+# And its three neighbours, which devtmpfs has not either: without them "tee /dev/stderr" tries to create a
+# file there, refused to a non-root user (a GitHub Actions step on Spunto CI, 2026-11-25).
+[ -e /dev/stdin ] || $B ln -s /proc/self/fd/0 /dev/stdin
+[ -e /dev/stdout ] || $B ln -s /proc/self/fd/1 /dev/stdout
+[ -e /dev/stderr ] || $B ln -s /proc/self/fd/2 /dev/stderr
 mnt ext4 /dev/vdb /workspace
 $B ip link set lo up
 $B ip route add 169.254.169.254 dev eth0 2>/dev/null

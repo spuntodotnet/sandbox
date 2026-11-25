@@ -7,7 +7,7 @@ import { createReadStream, createWriteStream, readFileSync, statSync } from "nod
 import net from "node:net"
 import { SandboxApiError, SandboxClient, Sandbox, snapshots, type SandboxInfo } from "../client"
 
-const VERSION = "0.1.0"
+const VERSION = "0.1.1"
 
 const HELP = `sbx — Firecracker microVMs on this machine (Spunto Sandbox ${VERSION})
 

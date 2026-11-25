@@ -187,7 +187,7 @@ describe("what is baked into every image's disk", () => {
   // allowed — on purpose, with this hash updated in the same commit, and said in the changelog.
   it("keeps the guest's init and the unpacker's byte for byte", () => {
     const { createHash } = require("node:crypto") as typeof import("node:crypto")
-    expect(createHash("sha256").update(`${GUEST_INIT}\n${UNPACK_INIT}`).digest("hex")).toBe("e0281f67b3d3526f12f708f2b1c44eee1c146543ccf1252bdfc738af5ae1db9c")
+    expect(createHash("sha256").update(`${GUEST_INIT}\n${UNPACK_INIT}`).digest("hex")).toBe("ec384eb9fec57f285c8652be6ed260bd4eb5e8e4a8c86c1f281548698e7e0cfb")
   })
 })
 

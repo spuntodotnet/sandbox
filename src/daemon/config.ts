@@ -3,7 +3,7 @@
  * The engine's own (`SPUNTO_FC_*`: paths, dataset, sizes, limits) are read by the engine.
  */
 
-export const DAEMON_VERSION = "0.1.0"
+export const DAEMON_VERSION = "0.1.1"
 
 /** Where the API listens: a unix socket, root's and its group's (`SBX_SOCKET_GROUP`). */
 export const SOCKET = process.env.SBX_SOCKET ?? "/run/spunto-sandbox.sock"
