@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/* Spunto's universe: graphite, and the product's own signal (a cold teal) — until the brand kit
+   paints Spunto Sandbox, when these come from its `data-product` block. */
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+:root {
+  --color-fd-primary: oklch(0.55 0.11 195);
+  --color-fd-ring: oklch(0.55 0.11 195);
+}
+.dark {
+  --color-fd-primary: oklch(0.78 0.12 190);
+  --color-fd-ring: oklch(0.78 0.12 190);
+  --color-fd-background: oklch(0.17 0.005 260);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}

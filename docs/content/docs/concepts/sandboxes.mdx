@@ -1,0 +1,75 @@
+---
+title: Sandboxes
+description: A microVM made from an OCI image; its lifecycle, its disks, its sizes.
+---
+
+A sandbox is one Firecracker microVM, one systemd unit (`spunto-fc-sbx-<id>`), one network
+namespace, two disks. It has an **id** (`az95j38feo`) and a **name** (yours, or the id); both work
+wherever a sandbox is asked for.
+
+## Lifecycle
+
+```
+            create                 pause                     resume
+  (image) ─────────▶ running ──────────────▶ paused ─────────────────▶ running
+                       │  ▲                  (RAM on disk)
+                  stop │  │ start
+                       ▼  │
+                     stopped  (disks only: a start boots)
+```
+
+| State | What runs on the host | What a start does |
+|---|---|---|
+| `creating` | the image being pulled and unpacked, or the disks being cloned | — |
+| `running` | its VMM | — |
+| **paused** (`stopped`, `ram: saved`) | nothing: its RAM is in a file of its memory dataset | loads that RAM and resumes it: **every process carries on** |
+| `stopped` (`ram: none`) | nothing | boots its disks: a cold start, its processes gone |
+| `error` | nothing | says why in `detail` (killed for lack of memory, for instance); a start boots it |
+
+`pausing` and `stopping` are transitions: the call answers once they are done, unless you ask it
+not to wait (`?wait=false`).
+
+### Pause or stop
+
+- **Pause** keeps everything: a resume takes a fraction of a second and the box is as it was. The
+  cost is disk — the memory file, compressed, holes for what the guest never touched or freed.
+- **Stop** shuts the guest down cleanly (its page cache reaches the disk) and drops the RAM. Use it
+  when the processes are not worth keeping, or before an image of the disk only.
+
+A RAM is loaded **once**: as soon as it is, the disk moves on, and loading that RAM again would put
+stale memory over a newer disk. A box whose VMM died (the OOM killer, a host reboot) therefore boots
+at its next start — it never resumes an old RAM.
+
+## Disks
+
+| | | |
+|---|---|---|
+| `/` | `vda` | a ZFS clone of the image, grown to its size's disk (40 GB for `small`); copy-on-write: a box only takes what it writes |
+| `/workspace` | `vdb` | 20 GB, a volume of its own, where commands run by default |
+
+Both are sparse ZFS volumes, lz4-compressed. They grow, never shrink: `POST /v1/sandboxes/{id}/grow`
+(or `box.grow({ rootGb, workspaceGb })`), running or not; the guest sees the new size at once and
+its filesystem follows.
+
+## Sizes
+
+| Size | vCPU | Memory | `/` |
+|---|---|---|---|
+| `small` (default) | 1 | 2 GB | 40 GB |
+| `default` | 2 | 4 GB | 40 GB |
+| `large` | 4 | 8 GB | 50 GB |
+| `xlarge` | 8 | 16 GB | 60 GB |
+
+A size is a ceiling: an idle `small` holds far less than 2 GB on the host, and what the guest frees
+goes back to the host (a balloon's free page reporting). See [Resources](/docs/concepts/resources).
+
+## Inside a box
+
+- **PID 1 is `tini`**, its child the engine's init (a busybox shell script): it mounts the
+  filesystems, reads the box's identity from Firecracker's metadata service (MMDS), and runs the
+  box's bootstrap — here, the [guest agent](/docs/guest-agent). No systemd: images rarely have one.
+- **Its env** is what you gave at create, plus `SPUNTO_SANDBOX_ID`. Values never come back out of
+  the API (names only).
+- **Its hostname** is its name. Its DNS resolvers are 1.1.1.1 and 8.8.8.8.
+- **Docker works inside** (the kernel has what it needs): install it in the image or at runtime.
+- An image only needs a `/bin/sh`.

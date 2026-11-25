@@ -1,0 +1,88 @@
+---
+title: Configuration
+description: Every setting of the daemon and the engine.
+---
+
+Settings are environment variables of the daemon: put them in **`/etc/spunto-sandbox/sandboxd.env`**
+(`KEY=value`, one per line, no quotes) and `sudo systemctl restart spunto-sandboxd` — sandboxes keep
+running across a restart. Running VMMs get new CPU and network limits at the restart; memory
+settings apply to the next admissions.
+
+## The daemon (`SBX_*`)
+
+| Variable | Default | |
+|---|---|---|
+| `SBX_SOCKET` | `/run/spunto-sandbox.sock` | the API's unix socket |
+| `SBX_SOCKET_GROUP` | `spunto-sandbox` | the group that may use it (mode 660); unset or missing: root only |
+| `SBX_LISTEN` | — | also listen on TCP: `0.0.0.0:7070` (needs `SBX_API_TOKEN`) |
+| `SBX_API_TOKEN` | — | the bearer token TCP requests need |
+| `SBX_STATE_DIR` | `/var/lib/spunto-sandbox` | the daemon's own state |
+| `SBX_DEFAULT_SIZE` | `small` | a box's size when none is given |
+| `SBX_CREATE_TIMEOUT_MS` | `900000` | how long a create waits for its box (a large image's first pull) |
+| `SBX_AGENT_FILE` | — | another guest agent binary than the one installed |
+| `SBX_LOG_REQUESTS` | — | `1`: a log line per request |
+
+The CLI and the SDK read `SBX_HOST` (`unix:///run/spunto-sandbox.sock`, or `http(s)://host:port`) and `SBX_TOKEN`.
+
+## The engine (`SPUNTO_FC_*`)
+
+### Where things are
+
+| Variable | Default | |
+|---|---|---|
+| `SPUNTO_FC_DATASET` | `default/spunto` (the installer sets it) | the ZFS dataset everything goes under |
+| `SPUNTO_FC_OPT` | `/opt/spunto-fc` | binaries and kernels |
+| `SPUNTO_FC_STATE` | `/var/lib/spunto-fc` | the registry, memory mounts, jails |
+| `SPUNTO_FC_RUN` | `/run/spunto-fc` | VMM exit records |
+| `SPUNTO_FC_SLICE` | `vms.slice` | the systemd slice of every VMM: its `MemoryMax` is the boxes' budget |
+| `SPUNTO_FC_KERNEL` | the pinned kernel | boot another kernel (a test, a local build) |
+| `SPUNTO_FC_UPLINK` | the default route's device | the interface boxes go out through |
+
+### Sizes and disks
+
+| Variable | Default | |
+|---|---|---|
+| `SPUNTO_FC_ROOT_SIZE` | by size: 40, 40, 50, 60 GB | one system disk size for every box |
+| `SPUNTO_FC_IMAGE_SIZE` | `10G` | the filesystem an image is unpacked into (each box's clone is grown) |
+| `SPUNTO_FC_WORKSPACE_SIZE` | `20G` | a new box's `/workspace` |
+| `SPUNTO_FC_MAX_ROOT_GB` / `SPUNTO_FC_MAX_WS_GB` | `200` / `500` | what `grow` accepts, at most |
+| `SPUNTO_FC_MIN_POOL_FREE_GB` | `5` | below this left in the pool, no new box and no new memory file |
+| `SPUNTO_FC_MEM_RECORDSIZE` | `64K` | the `recordsize` of memory datasets |
+
+### Memory
+
+| Variable | Default | |
+|---|---|---|
+| `SPUNTO_FC_ADMIT` | on | `0`: no memory admission at all |
+| `SPUNTO_FC_ADMIT_MIN_MB` | `1024` | the least real room a box needs to start (else an eighth of its RAM) |
+| `SPUNTO_FC_OVERCOMMIT` | `1.5` | how far the boxes' announced RAM may exceed the slice (`0`: no limit) |
+| `SPUNTO_FC_ADMIT_HOLD_MS` | `30000` | how long an admission holds its room for a box that is starting |
+| `SPUNTO_FC_FREE_PAGE_REPORTING` | on | `0`: no balloon, freed guest memory stays resident |
+| `SPUNTO_FC_INIT_ON_FREE` | off | `1`: the guest zeroes freed pages (touches every page at boot) |
+
+### CPU and network
+
+| Variable | Default | |
+|---|---|---|
+| `SPUNTO_FC_CPU_LIMITS` | on | `0`: no CPU quota nor weight |
+| `SPUNTO_FC_CPU_MARGIN` | `0.5` | cores on top of a box's vCPUs, for its VMM's threads |
+| `SPUNTO_FC_CPU_WEIGHT` | `100` | every box's weight; `vcpu` for 100 per vCPU |
+| `SPUNTO_FC_NET_LIMITS` | on | `0`: no shaping |
+| `SPUNTO_FC_NET_MBIT` | `200` | a box's ceiling, each way |
+| `SPUNTO_FC_NET_TOTAL_MBIT` | 95 % of the link | what all boxes share equally when full |
+| `SPUNTO_FC_SMTP` | closed | `open`: port 25 open for every box |
+| `SPUNTO_FC_SMTP_ALLOW` | — | sandbox ids (comma-separated) that may use port 25 |
+
+### Guests and VMMs
+
+| Variable | Default | |
+|---|---|---|
+| `SPUNTO_FC_JAILER` | on | `0`: VMMs as root, without the jailer — a comparison, never on a shared machine |
+| `SPUNTO_FC_UID_BASE` | `2000000000` | the jailed VMMs' uids start here |
+| `SPUNTO_FC_KERNEL_EXTRA_ARGS` | — | more guest kernel arguments (`a=b c`) |
+
+### Two daemons on one machine
+
+A second engine (a test next to a real one) needs its own `SPUNTO_FC_STATE`, `SPUNTO_FC_RUN`,
+`SPUNTO_FC_DATASET`, `SPUNTO_FC_SLICE`, `SPUNTO_FC_NET_FIRST` (its networks start there, e.g. 1000),
+`SPUNTO_FC_IFB` (another IFB prefix) and `SPUNTO_FC_JAIL_DIR`, and a daemon of its own (`SBX_SOCKET`, `SBX_STATE_DIR`).

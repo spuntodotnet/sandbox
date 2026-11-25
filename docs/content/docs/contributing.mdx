@@ -1,0 +1,58 @@
+---
+title: Contributing
+description: The development loop, the tests, a real machine, the kernel.
+---
+
+```sh
+git clone https://github.com/coderhammer/spunto-sandbox && cd spunto-sandbox
+npm ci
+npm test            # the engine against a fake host (vitest), the agent for real once built
+npm run build       # dist/: sandboxd.mjs, sbx.mjs, sbx-agent (needs Go 1.24+), client.mjs, engine.mjs
+npm run typecheck
+```
+
+| | |
+|---|---|
+| `src/engine/` | the engine, in modules: `index.ts` lists them in the order a box meets them |
+| `src/daemon/` | `spunto-sandboxd`: the API (`http.ts`), the operations (`service.ts`), the agent connection (`agent.ts`), what a box gets (`guest.ts`) |
+| `src/client/`, `src/cli/` | the SDK and `sbx` |
+| `guest/` | the agent (Go) and its [protocol](/docs/guest-agent#the-protocol) |
+| `test/` | `engine.state.test.ts` mocks `execFile` and Firecracker's API: the engine's real state machine against a fake host |
+| `kernel/` | the guest kernel's config and its reproducible build |
+| `docs/` | this site (`npm run dev` in it) |
+
+## On a real machine
+
+Nothing that touches a box is proven by unit tests alone. With a GCP project:
+
+```sh
+scripts/up.sh                 # an n2-standard-8 with nested virtualization and a ZFS disk; deletes itself after 4 h
+scripts/try.sh                # build this tree, install it there, open a shell
+scripts/try.sh -- sbx run ubuntu:24.04 --name t
+```
+
+Any machine with KVM and ZFS will do: `npm run build`, copy `install.sh` and `dist/`, then
+`sudo sh install.sh --from dist`.
+
+## Rules
+
+- **Compatibility is with running machines.** The engine's operations, its `SPUNTO_FC_*` variables, its
+  paths, its unit names and its MMDS layout are what installed machines hold: add, don't rename.
+- **The guest's init and the unpacker's are frozen.** They are baked into every image's disk: change a
+  byte and every machine unpacks every image again. A test pins their hash; update it on purpose and say
+  so in the release notes. What the daemon needs from a box goes through the bootstrap and MMDS.
+- Comments say why. Measures go in the PR, with what they were measured on.
+
+## The kernel
+
+```sh
+kernel/build.sh out/        # Docker needed; gives out/vmlinux and its sha256
+```
+
+A config change bumps `SPUNTO_REVISION` in `kernel/VERSION`, `kernel/vmlinux.sha256` and
+`GUEST_KERNEL` in `src/engine/config.ts`; CI rebuilds it and refuses a different sha256.
+
+## Releases
+
+A tag `v<version>` (the version in `package.json`) builds and attaches `spunto-sandbox-linux-x64.tar.gz`
+(what `install.sh` downloads), the npm tarball and `SHA256SUMS` to a GitHub release.

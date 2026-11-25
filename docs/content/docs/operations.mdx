@@ -1,0 +1,59 @@
+---
+title: Operations
+description: Logs, upgrades, reboots, a full pool, the OOM killer, Docker on the same machine.
+---
+
+## Logs
+
+```sh
+journalctl -u spunto-sandboxd -f        # the daemon and the engine: every create, pause, fork, with timings
+sbx logs <box>                          # a box's serial console: kernel, init, bootstrap
+journalctl -u spunto-fc-sbx-<id>        # the same, from systemd
+```
+
+The engine's lines say what took how long: `sbx-az95j38feo: Boot snapshot in 728 ms (RAM written in 96 ms)`,
+`fork frk-… paused 63 ms (Diff, RAM written in 24 ms), memory ready in 268 ms`.
+
+## Upgrades
+
+Run the installer again. Sandboxes keep running: each VMM is a unit of its own, and the daemon picks
+up where it was (its registry, the boxes it finds running, the builds still going). A new **guest
+kernel** reaches a box at its next boot: a paused box whose RAM ran the old kernel is resumed once,
+shut down cleanly and booted on the new one (about two seconds, its processes lost once, nothing of
+its disk). A snapshot taken under the old kernel boots its disks instead of loading its RAM.
+
+## After a reboot of the host
+
+Back on their own: the daemon, the pool, `vms.slice`. Running boxes are `stopped` (their RAM was in
+memory, not written): a start boots them from their disks. Paused boxes are still paused — their RAM
+is on disk — and resume.
+
+## The pool is full
+
+Below `SPUNTO_FC_MIN_POOL_FREE_GB` (5 GB) left, new boxes and new memory files are refused, and a pause
+that cannot write its RAM shuts the box down cleanly instead (its disk whole). Free space: delete
+sandboxes and snapshots (`sbx rm`, `sbx snapshots rm`) — images go when nothing is cloned from them
+any more and a newer digest replaced them.
+
+```sh
+zfs list -o name,used,refer -r <pool>/spunto | sort -k2 -h | tail
+```
+
+## A box killed for lack of memory
+
+It shows `error`: *killed for lack of memory (OOM): the memory this machine gives its sandboxes
+(vms.slice) was full*. Start it again once there is room (it boots: its RAM was lost). If it happens,
+the slice is too small for what the boxes really touch: raise `--memory`, lower `SPUNTO_FC_OVERCOMMIT`,
+or run fewer boxes.
+
+## Docker on the same machine
+
+They coexist: the engine puts its rules in Docker's `DOCKER-USER` chain when it exists. Start the
+daemon after Docker (the unit says `After=docker.service`): otherwise Docker's chains go first and a
+box's traffic to Docker's bridges is not dropped by the engine's rules. Prefer a machine without
+Docker if it runs other people's code: a box breaking out would find Docker's socket.
+
+## A NIC that hangs
+
+Some Intel `e1000e` cards hang under the boxes' traffic (TCP segmentation offload). Turn it off:
+`ethtool -K <nic> tso off gso off` (and make it stick, with a systemd unit or your network config).

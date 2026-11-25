@@ -1,0 +1,30 @@
+---
+title: Builds
+description: Bake a recipe into a disk, once; start boxes from it in a second.
+---
+
+A **build** runs a shell script as root in a **builder microVM** of an image, and keeps its disk:
+boxes made from it boot with the work done (packages installed, repositories cloned, caches warm).
+
+```sh title="recipe.sh"
+#!/bin/sh
+set -e
+apt-get update -qq && apt-get install -y -qq python3 python3-pip git
+pip install --break-system-packages numpy pandas
+```
+
+```sh
+sbx build ubuntu:24.04 recipe.sh     # streams the log; bld-sjei0cp4ms ready
+sbx run --from bld-sjei0cp4ms --name analysis
+```
+
+- The recipe runs with a box's isolation, never on the host: its own namespace, the slice's memory,
+  out to the internet only. Its output is the builder's serial console, which becomes the build's log.
+- Its `/workspace` is a scratch volume, thrown away: what a build keeps is on `/`.
+- Lines `::spunto:step:start:<id>` and `::spunto:step:end:<id>` in its output mark steps (the
+  engine adds its own: `fc:image`, `fc:builder`, `fc:disk`).
+- It fails on a non-zero exit, after two hours, or if the builder stops without saying how it ended.
+
+A build or a memory snapshot? A build is reproducible and holds no process; a snapshot holds
+everything, processes included, and is made from a box you set up by hand. Often both: a build for
+the toolchain, then a snapshot of a box from it once its services are up.

@@ -77,7 +77,7 @@ Not macOS, not ARM — not yet.
 | `src/cli/` | `sbx` |
 | `guest/` | `sbx-agent`, the static Go binary in every box (exec, terminals, files, ports) — [protocol](guest/protocol.md) |
 | `kernel/` | the guest kernel's config and its reproducible build |
-| `docs/` | the documentation site (fumadocs) |
+| `docs/` | the documentation site (fumadocs, static export): `cd docs && npm ci && npm run dev` |
 | `install.sh` | the installer |
 
 ```sh

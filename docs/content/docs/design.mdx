@@ -1,0 +1,140 @@
+---
+title: Design notes
+description: Why the engine is built the way it is — each choice, and how it was measured.
+---
+
+The engine grew on real machines, under real sandboxes, over many iterations; its design document
+(Spunto's RFC 0039) records each one: what broke, what was measured, what changed. This page is its
+summary. Comments in the code refer to its sections — `§ 4.10` below is `§ 4.10` there.
+
+## § 2. Why Firecracker
+
+The need: a box per sandbox that starts fast, and **a pause that keeps the RAM** — a task waiting for
+a human for an hour should hold no memory, and carry on, processes included, when the human answers.
+
+Measured on the same bare-metal server: Incus/QEMU boots in 9–11 s, stops with its state in 8.6 s and
+resumes in 7.8 s — no faster than a boot. Firecracker boots to a login in 2.3 s, and `snapshot/load` +
+resume takes 27 ms. A full platform like E2B's would have brought a control plane of its own
+(Postgres, ClickHouse, Redis); what was missing was only the bottom layer: start microVMs, keep a local
+registry.
+
+## § 4.1 Image → disk, and the kernel
+
+- The host makes an **empty** sparse ext4 zvol; a throwaway **unpacker microVM** gets it as its second
+  disk, runs `crane export | tar -x` into it, adds `/.spunto/` (tini, a static busybox, the init), and
+  powers off. `@ready` is snapshotted; every box's `/` is a clone.
+- A disk's id is the hash of the image (by digest: a moved tag is a new disk), the init **and the
+  unpacker's init**: change either and a new disk is made. That is why they are frozen (a test pins
+  their hash).
+- **Our kernel**: Firecracker's CI config for 6.18 plus what Docker needs (moby's `check-config.sh`:
+  the four legacy iptables tables for IPv4 and IPv6 — `raw` included, which Docker 29 needs for every
+  published port — nftables, IPVS, `br_netfilter`, VXLAN, user namespaces, seccomp, TUN, FUSE,
+  binfmt_misc), **all built in**: a guest has no `/lib/modules`. Reproducible: pinned source and
+  compiler, fixed timestamp; CI must give exactly the pinned sha256 before it publishes.
+- **Changing the kernel with RAMs saved**: a loaded snapshot keeps its kernel. Each snapshot records
+  it; a RAM of another kernel is loaded once more, shut down cleanly, then booted on the new one.
+- **No systemd in the guest**: tini as PID 1, a busybox shell init that mounts, writes resolv.conf and
+  `/etc/hosts` when the image has none, switches iptables to `-nft` when an image forces legacy,
+  reads MMDS, runs the bootstrap.
+
+## § 4.2 Disks: ZFS
+
+Images, boxes' roots, `/workspace` volumes, templates, builds and memory files are ZFS datasets under
+`<pool>/spunto`: a clone is instantaneous and copy-on-write (a box's root takes ~100 MB after a boot).
+Nothing is ever destroyed in cascade: a dataset others are clones of hands its snapshots to one of them
+first (`zfs promote`). The registry is not trusted alone: a `ready` image whose dataset is gone is
+unpacked again rather than failing every box.
+
+## § 4.3 Network: a namespace per VM, the same inside
+
+Every box's namespace has the same inside (tap `172.16.0.1`, guest `172.16.0.2`, **fixed MACs**): a
+clone carries its network configuration in its RAM, so two clones on a shared bridge would collide. A
+random gateway MAC once cost every clone **40 s without DNS** — its ARP cache still held the builder's.
+Out through a veth on a `/30`, NAT, and rules that drop private ranges, CGNAT, link-local (a cloud's
+metadata server), the host and other boxes — [Isolation](/docs/concepts/isolation).
+
+## § 4.4 Identity: MMDS, never the disk
+
+A box's env (its token) and its bootstrap go in MMDS v2 at every boot and every load, with a new
+**generation**: never on a disk (a clone or an archive carries no token), never on a command line.
+The init reads MMDS once a second over raw HTTP (busybox `nc`), and takes a generation **whole or not
+at all** — a read that fails replaces nothing (a first version restarted the bootstrap without a token,
+in a loop). After a resume, the host **knocks** on a port the init listens on, so the new generation is
+read in milliseconds rather than up to a second later. MMDS is not part of a snapshot: it is written
+before the resume (`resume_vm: false`, `PUT /mmds`, `Resumed`).
+
+## § 4.5 Stop and start · § 20 Pause and stop
+
+A pause is `PATCH /vm Paused` (1–3 ms), the RAM written, the VMM stopped: a paused box costs no
+memory. A start is a new VMM, `snapshot/load` (memory as a `File` backend, loaded on demand), MMDS,
+resume. **A saved RAM loads once**: as soon as it is loaded the disk moves on, and loading it again
+after a crash would put stale page cache over a newer disk. A stop that drops the RAM shuts the guest
+down cleanly first, so that its page cache reaches the disk (§ 4.7).
+
+## § 4.9 Builds
+
+A recipe runs in a builder microVM: the project's code as root gets a sandbox's isolation, never the
+host's. Its console is the build log; its disk, snapshotted, is the build.
+
+## § 4.10 The fork
+
+Freeze (pause, RAM as a Diff when the source has a base, disks snapshotted, resume), then — after the
+resume, under the source's lock — merge the Diff into the source's base, clone it for the copy. The
+copy loads it with `resume: "reidentify"`: its init swaps the env and signals the agent, which takes
+the new identity in place; every process stays. What does not copy well (connections, randomness
+already drawn) is documented rather than hidden — [Snapshots and forks](/docs/concepts/snapshots-and-forks).
+
+## § 6. Security
+
+Each VMM jailed (§ 21), the image never unpacked on the host — the first version ran `tar -x` as root
+into a mounted zvol, and a write to `etc/resolv.conf` after it followed an image's `etc -> /` onto the
+host's own — the host never mounting a disk a guest wrote, tokens only in MMDS, the registry root's.
+
+## § 15. `init_on_free` touched all the RAM at boot
+
+Zeroing freed pages (`init_on_free=1`) also zeroes the whole RAM at boot, when the kernel hands it to
+its allocator: an `xlarge` held all of its 16 GB six seconds after boot and the OOM killer took it.
+Off by default since. To keep memory files small without that: a **balloon** that never inflates, for
+its **free page reporting** — the guest reports freed blocks, Firecracker `MADV_DONTNEED`s them (3.5 GB
+freed in a box: RSS 3 551 → 485 MB, memory file 3 438 → 407 MB). And a box's first snapshot after a
+cold boot is a **Diff since boot** (pages never touched stay holes): 27.6 s instead of 201 s for an
+`xlarge`. Memory **admission** before every start dates from here too.
+
+## § 17. Memory files in ZFS
+
+A fork of an `xlarge` once took 5 min 45 s: memory files were plain files on an ext4 without reflink,
+copied whole (16 GB at ~100 MB/s), and the pause included an `fsync`. Now each box's and template's
+memory is **a ZFS filesystem of its own** (lz4, `recordsize=64K`, `sync=disabled`): a copy is
+`zfs snapshot` + `zfs clone`. A fork's copy: 14 MB for 1.5 GB of RAM.
+
+The RAM is written **without fsync into a scratch on ext4** during the pause, then merged into the
+dataset after the resume — not straight into ZFS: lz4 stores a record of zeros as a hole, and
+`snapshot-editor` only copies a Diff's *data*; a page the guest had zeroed was missing from the Diff,
+and the base kept its old content. The first copy made that way died at its first instruction (a triple
+fault). Zeroed pages are now checked through a fork.
+
+## § 21. The jailer, and CPU limits
+
+Before opening machines to strangers side by side: every VMM under Firecracker's jailer — a chroot, a
+uid (`2 000 000 000 + its network number`), no capability; its disks device nodes of its own in the
+chroot, the same paths as before, so snapshots taken outside a jail load inside one. Mounts made after
+a VMM started still reach its jail (the jailer's root is a slave of the host's): memory files are bound
+in for a snapshot call only. CPU: a quota of its vCPUs + 0.5, and **the same weight for every box** —
+measured, a weight per vCPU left a 1-vCPU neighbour at 0.35–0.55× its speed next to a busy 8-vCPU box.
+
+## § 22. Network shares, port 25, disks, measures
+
+Unshaped, one box took 13.3 Gbit/s. Now a ceiling per box (200 Mbit/s) and, when the uplink is full,
+equal shares **per box** through two IFBs and HTB — with a quantum above a GSO packet's 64 KiB: at the
+documented 15 140 bytes, the box with the bigger packets won (204 vs 139 Mbit/s). Port 25 is rejected
+in each box's namespace (465 and 587 stay open: authenticated submission). `refquota` does not apply to
+a zvol: a disk's size is its bound, and `grow` has a per-machine ceiling. And what each box uses is
+measured on the host — CPU, memory, veth bytes, ZFS's own IO counters — never asked of the guest.
+
+## Alternatives set aside
+
+- **A shared bridge with an IP per VM**: clones would have the same IP and MAC.
+- **vsock** to notify the guest: a client would be needed in every image; the knock does it with busybox.
+- **MMDS v1**: deprecated.
+- **Always-Full snapshots**: 7–16 s per stop, against 0.2–3 s as Diffs.
+- **Incremental archives** (`zfs send -i`): smaller, but only restorable where the image exists.

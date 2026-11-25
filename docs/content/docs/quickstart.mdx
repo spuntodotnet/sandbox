@@ -1,0 +1,107 @@
+---
+title: Quickstart
+description: Install Spunto Sandbox, make a microVM, pause it, resume it, fork it.
+---
+
+You need a Linux x86_64 machine with KVM (`ls /dev/kvm`): a bare-metal server, or a cloud VM with
+nested virtualization. A ZFS pool helps; without one, the installer can make one in a file.
+
+<Steps>
+<Step>
+
+### Install
+
+```sh
+curl -fsSL https://sandbox.spunto.net/install.sh | sudo sh -s -- --create-pool 50G
+```
+
+Drop `--create-pool` if the machine has a ZFS pool already: the first one is used. The installer
+puts Firecracker, its jailer and a Node runtime under `/opt/spunto-fc`, the daemon under
+`/opt/spunto-sandbox`, runs it as the systemd service `spunto-sandboxd`, and adds you to the
+`spunto-sandbox` group (`sbx` without `sudo` from your next login). [More](/docs/installation).
+
+```sh
+sbx host
+```
+
+</Step>
+<Step>
+
+### Make a sandbox
+
+```sh
+sbx run ubuntu:24.04 --name hello
+```
+
+The first box of an image pulls and unpacks it (a few seconds for `ubuntu:24.04`); the next ones
+boot in about two seconds. Any image works: `node:24`, `python:3.13`, `ghcr.io/you/yours`.
+
+```sh
+sbx exec hello -- sh -c 'uname -a; df -h / /workspace'
+sbx shell hello
+```
+
+`/` is a copy-on-write clone of the image, `/workspace` a disk of its own (where commands run by default).
+
+</Step>
+<Step>
+
+### Pause it, resume it
+
+Start something that keeps state in memory:
+
+```sh
+sbx exec hello -- sh -c 'nohup sh -c "i=0; while :; do i=\$((i+1)); echo \$i > /tmp/n; sleep 0.1; done" >/dev/null 2>&1 &'
+sbx exec hello -- cat /tmp/n
+```
+
+```sh
+sbx pause hello     # hello paused in 819 ms — memory kept
+sbx ls              # STATE: paused
+sbx resume hello    # hello running in 336 ms
+sbx exec hello -- cat /tmp/n
+```
+
+The counter carries on from where it was: the process never stopped, it was frozen. A paused box
+holds no memory and no CPU on the host, only its memory file on disk.
+
+</Step>
+<Step>
+
+### Fork it
+
+```sh
+sbx fork hello --name hello-2
+sbx exec hello-2 -- sh -c 'cat /tmp/n; ps -o pid,args | grep while'
+```
+
+`hello-2` runs the same counter, same PID, with its own disks from now on: what one writes, the
+other does not see.
+
+</Step>
+<Step>
+
+### From code
+
+```ts title="try.mts"
+import { Sandbox } from "@spunto/sandbox"
+
+const box = await Sandbox.create({ image: "node:24-slim" })
+const r = await box.exec("node -e 'console.log(process.version)'")
+console.log(r.stdout, r.exitCode)
+await box.destroy()
+```
+
+```sh
+npm i @spunto/sandbox && node try.mts
+```
+
+</Step>
+</Steps>
+
+When you are done: `sbx rm hello hello-2`.
+
+<Cards>
+  <Card title="CLI reference" href="/docs/cli" />
+  <Card title="TypeScript SDK" href="/docs/sdk" />
+</Cards>
