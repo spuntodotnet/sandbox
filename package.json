@@ -4,7 +4,7 @@
   "description": "Firecracker microVMs on your own Linux machine: an OCI image in, a microVM in seconds. A pause keeps the memory, a fork copies a running VM. The engine behind Spunto Cloud.",
   "license": "Apache-2.0",
   "type": "module",
-  "repository": { "type": "git", "url": "git+https://github.com/coderhammer/spunto-sandbox.git" },
+  "repository": { "type": "git", "url": "git+https://github.com/spuntodotnet/sandbox.git" },
   "homepage": "https://sandbox.spunto.net",
   "keywords": ["firecracker", "microvm", "sandbox", "kvm", "zfs", "snapshot", "agents"],
   "engines": { "node": ">=22" },

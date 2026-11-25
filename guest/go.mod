@@ -1,3 +1,3 @@
-module github.com/coderhammer/spunto-sandbox/guest
+module github.com/spuntodotnet/sandbox/guest
 
 go 1.24

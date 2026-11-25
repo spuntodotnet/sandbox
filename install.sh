@@ -14,14 +14,14 @@
 # Options (or the same in the environment):
 #   --create-pool <size>    no pool yet: make one in /var/lib/spunto-sandbox/pool.img (sparse)
 #   --dataset <pool/name>   SPUNTO_FC_DATASET: where everything goes (default: <first pool>/spunto)
-#   --version <v>           SBX_VERSION: a release of github.com/coderhammer/spunto-sandbox (latest)
+#   --version <v>           SBX_VERSION: a release of github.com/spuntodotnet/sandbox (latest)
 #   --from <dir>            SBX_FROM: a dist/ directory of yours (npm run build) instead of a release
 #   --memory <size>         SBX_MEMORY: what the sandboxes may take together (default: RAM − 2 GB)
 set -eu
 
 FC_VERSION=v1.17.0
 NODE_VERSION=v24.11.1
-REPO=coderhammer/spunto-sandbox
+REPO=spuntodotnet/sandbox
 O=/opt/spunto-fc
 APP=/opt/spunto-sandbox
 ETC=/etc/spunto-sandbox
