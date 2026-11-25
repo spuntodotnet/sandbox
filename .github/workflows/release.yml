@@ -1,9 +1,9 @@
 name: Release
 # A tag v<version> (the version of package.json): the install tarball and the npm tarball, as
-# release assets. install.sh fetches the first; Spunto vendors the second.
+# release assets, and that same npm tarball published as @spunto/sandbox. install.sh fetches the first.
 on:
   push: { tags: ["v*"] }
-permissions: { contents: write }
+permissions: { contents: write, id-token: write } # id-token: npm's trusted publishing, no token stored
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -23,3 +23,5 @@ jobs:
           sha256sum spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh > SHA256SUMS
       - env: { GH_TOKEN: "${{ github.token }}" }
         run: gh release create "$GITHUB_REF_NAME" --generate-notes spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh SHA256SUMS
+      # Trusted publisher on npmjs.com: this repository, release.yml (npm trust github, 2026-11-25)
+      - run: npm publish ./spunto-sandbox-*.tgz --access public --provenance

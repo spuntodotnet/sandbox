@@ -55,4 +55,5 @@ A config change bumps `SPUNTO_REVISION` in `kernel/VERSION`, `kernel/vmlinux.sha
 ## Releases
 
 A tag `v<version>` (the version in `package.json`) builds and attaches `spunto-sandbox-linux-x64.tar.gz`
-(what `install.sh` downloads), the npm tarball and `SHA256SUMS` to a GitHub release.
+(what `install.sh` downloads), the npm tarball and `SHA256SUMS` to a GitHub release, and publishes
+that npm tarball as `@spunto/sandbox` (npm trusted publishing, with provenance).
