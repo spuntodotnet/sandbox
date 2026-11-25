@@ -1,0 +1,52 @@
+name: Guest kernel
+
+# The microVMs' kernel (kernel/), built reproducibly: every build must give exactly the sha256 of
+# kernel/vmlinux.sha256 — what the engine pins and checks (GUEST_KERNEL). On main, published on
+# ghcr.io as an OCI blob addressed by that sha256 (the public package coderhammer/spunto-fc-kernel,
+# whose Actions access must include this repository).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - kernel/**
+      - .github/workflows/kernel.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (reproducible) & publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        run: kernel/build.sh "$RUNNER_TEMP/out"
+
+      - name: Same bytes as the pinned sha256
+        run: |
+          cd "$RUNNER_TEMP/out"
+          cat vmlinux.sha256
+          if ! diff -u "$GITHUB_WORKSPACE/kernel/vmlinux.sha256" vmlinux.sha256; then
+            echo "::error::the kernel built here is not the pinned one — a config change needs a new SPUNTO_REVISION and vmlinux.sha256 (and GUEST_KERNEL in src/engine/config.ts), or the build is not reproducible"
+            exit 1
+          fi
+
+      - uses: oras-project/setup-oras@v1
+        if: github.event_name != 'pull_request'
+
+      - name: Publish to ghcr.io
+        if: github.event_name != 'pull_request'
+        run: |
+          . kernel/VERSION
+          echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u "${{ github.actor }}" --password-stdin
+          cd "$RUNNER_TEMP/out"
+          # The vmlinux as is: its blob digest is its sha256, the one the daemon fetches and checks.
+          oras push "ghcr.io/coderhammer/spunto-fc-kernel:${LINUX_VERSION}-${SPUNTO_REVISION}" \
+            --artifact-type application/vnd.spunto.fc-kernel \
+            --annotation "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            vmlinux:application/vnd.spunto.fc-kernel.vmlinux \
+            config:text/plain

@@ -1,0 +1,20 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.24", cache-dependency-path: guest/go.mod }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: cd guest && go vet ./... && test -z "$(gofmt -l .)"
+      - run: npm run build
+      # With the agent built: its tests run for real (test/agent.test.ts).
+      - run: npm test
+      - run: sh -n install.sh

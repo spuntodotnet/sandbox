@@ -9,14 +9,14 @@ export const DATASET = process.env.SPUNTO_FC_DATASET ?? "default/spunto"
 /** The systemd slice every VM runs in — its MemoryMax is the machine's budget for sandboxes. */
 export const SLICE = process.env.SPUNTO_FC_SLICE ?? "vms.slice"
 /**
- * The guest kernel: ours (images/fc-kernel — Firecracker's CI config plus what Docker needs, raw and
+ * The guest kernel: ours (kernel/ — Firecracker's CI config plus what Docker needs, raw and
  * mangle tables included), built reproducibly by CI and published on ghcr.io as a blob named by its
  * own sha256. The daemon fetches it at host setup, checks it, and boots every new box with it.
  * `SPUNTO_FC_KERNEL` points at another file instead (a test, a local build).
  */
 export const GUEST_KERNEL = {
   version: "6.18.55-s2",
-  /** = images/fc-kernel/vmlinux.sha256 (a test checks it), the blob's digest on ghcr.io. */
+  /** = kernel/vmlinux.sha256 (a test checks it), the blob's digest on ghcr.io. */
   sha256: "88b4dfab5be8f97bf34c41b5083c3009a65debb6e4afdf6b8c2c96f0c7c44ecc",
   repository: "coderhammer/spunto-fc-kernel",
 }

@@ -4,7 +4,7 @@
 # fixed build timestamp/user/host. Two builds of the same commit give the same vmlinux (CI checks
 # it against SHA256SUMS before publishing).
 #
-#   images/fc-kernel/build.sh [out dir]      → <out>/vmlinux, <out>/config, <out>/vmlinux.sha256
+#   kernel/build.sh [out dir]      → <out>/vmlinux, <out>/config, <out>/vmlinux.sha256
 #
 # Needs Docker. Inside the container: the same script with --inside.
 set -euo pipefail

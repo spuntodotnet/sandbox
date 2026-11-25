@@ -1,0 +1,225 @@
+openapi: 3.1.0
+info:
+  title: Spunto Sandbox
+  version: 0.1.0
+  summary: Firecracker microVMs on this machine.
+  description: |
+    The API of `spunto-sandboxd`. It listens on a unix socket, `/run/spunto-sandbox.sock` (root and the
+    `spunto-sandbox` group), and — when `SBX_LISTEN` is set — on TCP, where every request needs
+    `Authorization: Bearer $SBX_API_TOKEN`.
+
+    `{id}` is a sandbox's id or its name. Errors are `{ "error": { "code", "message" } }`: `not_found`
+    (404), `invalid` (400), `capacity` (409: this machine has no room for it now — memory or disk),
+    `upstream` (502: the engine or the box failed), `unauthorized` (401).
+
+    Streams — an interactive command, a terminal, a port — go through `POST /v1/sandboxes/{id}/attach`
+    with `Upgrade: sbx-agent/1`, which then carries the guest agent's frames (guest/protocol.md).
+  license:
+    name: Apache-2.0
+servers:
+  - url: http://localhost
+    description: "the unix socket: curl --unix-socket /run/spunto-sandbox.sock http://sbx/v1/sandboxes"
+security:
+  - {}
+  - bearer: []
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, description: "TCP only: the daemon's SBX_API_TOKEN" }
+  parameters:
+    id: { name: id, in: path, required: true, schema: { type: string }, description: "a sandbox's id or name" }
+    wait: { name: wait, in: query, schema: { type: boolean, default: true }, description: "answer once done (false: at once, `transition` tells)" }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: object, properties: { code: { type: string }, message: { type: string } }, required: [code, message] }
+    Sandbox:
+      type: object
+      required: [id, name, image, size, state, env, createdAt, handle]
+      properties:
+        id: { type: string, example: az95j38feo }
+        name: { type: string, example: hello }
+        image: { type: string, example: "ubuntu:24.04" }
+        size: { type: string, enum: [small, default, large, xlarge] }
+        handle: { type: string, description: "the engine's handle: sbx-<id> (its unit is spunto-fc-sbx-<id>)" }
+        state: { type: string, enum: [creating, running, stopped, missing, error] }
+        detail: { type: string, example: "memory saved — a start resumes it" }
+        transition: { type: string, enum: [pausing, stopping], description: "a pause or a stop still under way (state already says stopped)" }
+        ram: { type: string, enum: [saved, none], description: "saved: a start resumes it, processes and all" }
+        env: { type: object, additionalProperties: { type: string }, description: "names only: values never leave the daemon" }
+        labels: { type: object, additionalProperties: { type: string } }
+        from: { type: string, description: "a snapshot, a build, or fork:<sandbox id>" }
+        createdAt: { type: string, format: date-time }
+        timings: { type: object, additionalProperties: { type: number }, description: "the engine's last measures, in ms (createMs, startWarmMs, pauseMs…)" }
+        tookMs: { type: number, description: "start, pause, stop, fork: how long the call took" }
+        pauseMs: { type: number, description: "fork: how long the source was paused" }
+    Snapshot:
+      type: object
+      properties:
+        id: { type: string, example: snap-spn8xbwred }
+        name: { type: string }
+        sandboxId: { type: string }
+        image: { type: string }
+        size: { type: string }
+        kind: { type: string, enum: [memory, disks], description: "memory: a sandbox from it resumes with every process; disks: it boots" }
+        state: { type: string, enum: [pending, ready, error] }
+        detail: { type: string }
+        createdAt: { type: string, format: date-time }
+    Size:
+      type: object
+      properties: { id: { type: string }, label: { type: string }, cpus: { type: number }, memoryGb: { type: number } }
+paths:
+  /v1/health:
+    get:
+      summary: Is the daemon up
+      responses: { "200": { description: ok, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, version: { type: string }, agent: { type: [string, "null"] } } } } } } }
+  /v1/host:
+    get:
+      summary: This machine
+      description: The kernel, the pool's free space, the memory the boxes hold, the network limits, each running box's usage.
+      responses: { "200": { description: ok, content: { application/json: { schema: { type: object } } } } }
+  /v1/sizes:
+    get:
+      summary: What a sandbox can be made at
+      responses: { "200": { description: ok, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Size" } } } } } }
+  /v1/sandboxes:
+    get:
+      summary: List sandboxes
+      responses: { "200": { description: ok, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Sandbox" } } } } } }
+    post:
+      summary: Make a sandbox
+      description: Answers once it runs and its agent answers (`?wait=false`, at once). The first box of an image pulls and unpacks it.
+      parameters: [{ $ref: "#/components/parameters/wait" }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image: { type: string, example: "node:24", description: "any OCI image, pulled anonymously; not needed with from" }
+                name: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,62}$" }
+                size: { type: string, enum: [small, default, large, xlarge], default: small }
+                env: { type: object, additionalProperties: { type: string } }
+                labels: { type: object, additionalProperties: { type: string } }
+                from: { type: string, description: "a snapshot (id or name) or a build" }
+      responses:
+        "200": { description: running, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } }
+        "409": { description: no room on this machine, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/sandboxes/{id}:
+    parameters: [{ $ref: "#/components/parameters/id" }]
+    get: { summary: One sandbox, responses: { "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } } } }
+    delete: { summary: Destroy it (disks and memory), responses: { "200": { description: gone } } }
+  /v1/sandboxes/{id}/pause:
+    parameters: [{ $ref: "#/components/parameters/id" }, { $ref: "#/components/parameters/wait" }]
+    post:
+      summary: Stop it, keeping its memory
+      description: Its RAM written (only the pages it dirtied, when there is a base to go over), then nothing runs. A resume brings every process back.
+      responses: { "200": { description: paused, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } } }
+  /v1/sandboxes/{id}/resume:
+    parameters: [{ $ref: "#/components/parameters/id" }, { $ref: "#/components/parameters/wait" }]
+    post: { summary: Run it again (same as start), responses: { "200": { description: running, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } } } }
+  /v1/sandboxes/{id}/start:
+    parameters: [{ $ref: "#/components/parameters/id" }, { $ref: "#/components/parameters/wait" }]
+    post:
+      summary: Run it again
+      description: Its RAM loaded after a pause (processes kept), its disk booted after a stop.
+      responses: { "200": { description: running, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } } }
+  /v1/sandboxes/{id}/stop:
+    parameters: [{ $ref: "#/components/parameters/id" }, { $ref: "#/components/parameters/wait" }]
+    post: { summary: "Stop it: a clean shutdown, its memory dropped, its disks kept", responses: { "200": { description: stopped, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } } } }
+  /v1/sandboxes/{id}/fork:
+    parameters: [{ $ref: "#/components/parameters/id" }, { $ref: "#/components/parameters/wait" }]
+    post:
+      summary: A copy of a running sandbox
+      description: The source paused for as short as possible (milliseconds), its memory and disks copied on write; the copy runs the same processes under its own identity.
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string } } } } } }
+      responses: { "200": { description: the copy, running, content: { application/json: { schema: { $ref: "#/components/schemas/Sandbox" } } } } }
+  /v1/sandboxes/{id}/snapshots:
+    parameters: [{ $ref: "#/components/parameters/id" }]
+    post:
+      summary: Keep it as it is now
+      description: "`memory: true` (the default): its RAM and disks — sandboxes from it resume with every process. `false`: its disks only (a pause of milliseconds), sandboxes from it boot. Answers once the source runs again; `state` is `pending` while the memory is written."
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, memory: { type: boolean, default: true } } } } } }
+      responses: { "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/Snapshot" } } } } }
+  /v1/sandboxes/{id}/exec:
+    parameters: [{ $ref: "#/components/parameters/id" }]
+    post:
+      summary: Run a command and wait for it
+      description: A string goes to `/bin/sh -c`, an array is run as it is. Output is kept up to 16 MiB per call (`truncated` past that). `detach`, the command outlives the call, its output in a log file inside the box.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cmd]
+              properties:
+                cmd: { oneOf: [{ type: string }, { type: array, items: { type: string } }] }
+                env: { type: object, additionalProperties: { type: string } }
+                cwd: { type: string, default: /workspace }
+                user: { type: string, default: root }
+                stdin: { type: string }
+                timeoutMs: { type: number, description: "SIGKILL after this long" }
+                detach: { type: boolean }
+      responses:
+        "200":
+          description: it ended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exitCode: { type: integer }
+                  signal: { type: string }
+                  stdout: { type: string }
+                  stderr: { type: string }
+                  truncated: { type: boolean }
+                  durationMs: { type: number }
+                  pid: { type: integer, description: detach }
+                  log: { type: string, description: detach }
+  /v1/sandboxes/{id}/attach:
+    parameters: [{ $ref: "#/components/parameters/id" }]
+    post:
+      summary: A stream to the box's agent (an upgrade)
+      description: "`Connection: Upgrade`, `Upgrade: sbx-agent/1`. After the 101, the connection carries the agent's frames (guest/protocol.md): send a hello without a token, the daemon adds the box's."
+      responses: { "101": { description: switching to the agent's frames } }
+  /v1/sandboxes/{id}/files:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+      - { name: path, in: query, required: true, schema: { type: string }, description: an absolute path in the box }
+    get:
+      summary: Read a file
+      responses: { "200": { description: its bytes, headers: { X-Sbx-Mode: { schema: { type: string } } }, content: { application/octet-stream: {} } } }
+    put:
+      summary: Write a file (parents made, written whole or not at all)
+      parameters: [{ name: mode, in: query, schema: { type: string, example: "644" } }]
+      requestBody: { content: { application/octet-stream: {} } }
+      responses: { "200": { description: written, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, path: { type: string }, bytes: { type: integer } } } } } } }
+  /v1/sandboxes/{id}/grow:
+    parameters: [{ $ref: "#/components/parameters/id" }]
+    post:
+      summary: Grow its disks (never shrink), running or not
+      requestBody: { content: { application/json: { schema: { type: object, properties: { rootGb: { type: integer }, workspaceGb: { type: integer } } } } } }
+      responses: { "200": { description: ok } }
+  /v1/sandboxes/{id}/logs:
+    parameters: [{ $ref: "#/components/parameters/id" }, { name: lines, in: query, schema: { type: integer, default: 200 } }]
+    get: { summary: "Its serial console: the kernel, the init, the bootstrap", responses: { "200": { description: ok, content: { text/plain: {} } } } }
+  /v1/sandboxes/{id}/usage:
+    parameters: [{ $ref: "#/components/parameters/id" }]
+    get: { summary: "What it uses, as the host measures it (counters: CPU µs, memory, network and disk bytes)", responses: { "200": { description: ok } } }
+  /v1/snapshots:
+    get: { summary: List snapshots, responses: { "200": { description: ok, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Snapshot" } } } } } } }
+  /v1/snapshots/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get: { summary: One snapshot, responses: { "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/Snapshot" } } } } } }
+    delete: { summary: Delete it (sandboxes made from it keep what they cloned), responses: { "200": { description: gone } } }
+  /v1/builds:
+    get: { summary: List builds, responses: { "200": { description: ok } } }
+    post:
+      summary: Bake a recipe into a disk
+      description: The script runs as root in a builder microVM of the image; its disk is what `from` boots. `::spunto:step:start|end:<id>` lines mark steps.
+      requestBody: { content: { application/json: { schema: { type: object, required: [image, script], properties: { image: { type: string }, script: { type: string }, size: { type: string } } } } } }
+      responses: { "200": { description: started, content: { application/json: { schema: { type: object, properties: { id: { type: string }, ref: { type: string } } } } } } }
+  /v1/builds/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }, { name: cursor, in: query, schema: { type: integer }, description: "the log from this character on" }]
+    get: { summary: "A build: its state, phase and log", responses: { "200": { description: ok } } }
+    delete: { summary: Delete it, responses: { "200": { description: gone } } }

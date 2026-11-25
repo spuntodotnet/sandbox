@@ -1,0 +1,25 @@
+name: Release
+# A tag v<version> (the version of package.json): the install tarball and the npm tarball, as
+# release assets. install.sh fetches the first; Spunto vendors the second.
+on:
+  push: { tags: ["v*"] }
+permissions: { contents: write }
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.24", cache-dependency-path: guest/go.mod }
+      - name: The tag is the package's version
+        run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
+      - run: npm ci && npm run build && npm test
+      - name: Assets
+        run: |
+          tar -czf spunto-sandbox-linux-x64.tar.gz -C dist sandboxd.mjs sbx.mjs sbx-agent
+          npm pack
+          sha256sum spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh > SHA256SUMS
+      - env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh SHA256SUMS
