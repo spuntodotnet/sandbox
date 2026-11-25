@@ -5,8 +5,8 @@ export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 
 export const gitConfig = {
-  user: 'coderhammer',
-  repo: 'spunto-sandbox',
+  user: 'spuntodotnet',
+  repo: 'sandbox',
   branch: 'main',
 };
 

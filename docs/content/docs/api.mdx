@@ -8,7 +8,7 @@ curl --unix-socket /run/spunto-sandbox.sock http://sbx/v1/sandboxes
 curl -H "Authorization: Bearer $SBX_TOKEN" http://host:7070/v1/sandboxes   # with SBX_LISTEN
 ```
 
-JSON in and out. `{id}` is a sandbox's id or name. The full spec: [`openapi.yaml`](https://github.com/coderhammer/spunto-sandbox/blob/main/openapi.yaml).
+JSON in and out. `{id}` is a sandbox's id or name. The full spec: [`openapi.yaml`](https://github.com/spuntodotnet/sandbox/blob/main/openapi.yaml).
 
 Errors: `{ "error": { "code", "message" } }`
 

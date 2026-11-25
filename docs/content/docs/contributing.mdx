@@ -4,7 +4,7 @@ description: The development loop, the tests, a real machine, the kernel.
 ---
 
 ```sh
-git clone https://github.com/coderhammer/spunto-sandbox && cd spunto-sandbox
+git clone https://github.com/spuntodotnet/sandbox && cd sandbox
 npm ci
 npm test            # the engine against a fake host (vitest), the agent for real once built
 npm run build       # dist/: sandboxd.mjs, sbx.mjs, sbx-agent (needs Go 1.24+), client.mjs, engine.mjs
