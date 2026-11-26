@@ -1,0 +1,46 @@
+# What runs on a Spunto worker, under process-compose: started by scripts/start.sh, driven by `pc`.
+#   pc attach                       every process, its state and its logs
+#   pc process logs docs -f         follow one
+#   pc process restart docs         restart one
+# The docs site (docs/, fumadocs), twice, for two audiences:
+# - :3000 (`site`): what sandbox.spunto.net serves — the static export (`next build`) and install.sh, by
+#   scripts/serve.mjs, which reads .serve/current on each request. That is what the human who tests opens.
+#   scripts/start.sh rebuilds it into .serve/<a|b> and swaps .serve/current when docs/ or install.sh changed.
+# - :5173 (`docs`): `next dev`, hot reload — for whoever iterates.
+# No daemon here: a worker has no KVM. Boxes are tried on a throwaway GCP machine (scripts/up.sh, scripts/try.sh).
+version: "0.5"
+log_location: ${HOME}/.process-compose/logs/all.log
+log_configuration:
+  disable_json: true
+  no_color: true
+
+processes:
+  site:
+    command: node scripts/serve.mjs
+    environment:
+      - PORT=3000
+    log_location: ${HOME}/.process-compose/logs/site.log
+    availability:
+      restart: on_failure
+      backoff_seconds: 2
+    readiness_probe:
+      http_get:
+        host: 127.0.0.1
+        port: 3000
+        path: /healthz
+      period_seconds: 1
+      failure_threshold: 60
+
+  docs:
+    command: npx next dev --hostname 0.0.0.0 --port 5173
+    working_dir: docs
+    log_location: ${HOME}/.process-compose/logs/docs.log
+    availability:
+      restart: on_failure
+      backoff_seconds: 2
+    # a TCP probe, not a page: a request a second would make next dev compile for nothing
+    readiness_probe:
+      exec:
+        command: "bash -c 'exec 3<>/dev/tcp/127.0.0.1/5173'"
+      period_seconds: 1
+      failure_threshold: 120
