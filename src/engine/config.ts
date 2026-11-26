@@ -124,6 +124,8 @@ export const SCRATCH = `${STATE}/scratch`
 export const MEM_RECORDSIZE = process.env.SPUNTO_FC_MEM_RECORDSIZE ?? "64K"
 export const POOL = DATASET.split("/")[0]!
 export const ZVOL = process.env.SPUNTO_FC_ZVOL_DIR ?? "/dev/zvol"
+/** Where the rule that keeps the host's udev out of the boxes' disks goes (`ensureZvolRule`). */
+export const UDEV_RULES = process.env.SPUNTO_FC_UDEV_RULES ?? "/etc/udev/rules.d"
 /** Below this, no new box: sparse disks promise more than the pool holds, and a full pool fails the
  * guest's writes with I/O errors rather than a clean "no space left". */
 export const MIN_POOL_FREE = Number(process.env.SPUNTO_FC_MIN_POOL_FREE_GB ?? 5) * GIB

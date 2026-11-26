@@ -19,7 +19,9 @@ async function file(path) {
 }
 
 createServer(async (req, res) => {
-  const url = decodeURIComponent(new URL(req.url, "http://x").pathname)
+  let url
+  try { url = decodeURIComponent(new URL(req.url, "http://x").pathname) }
+  catch { res.writeHead(400).end("bad request\n"); return } // a malformed %: an answer, not a crash
   if (url === "/healthz") return res.end("ok\n")
   const out = join(ROOT, ".serve/current/out")
   const rel = normalize(url).replace(/^(\.\.[/\\])+/, "")

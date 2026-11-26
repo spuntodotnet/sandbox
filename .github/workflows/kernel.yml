@@ -21,7 +21,8 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
 
       - name: Build
         run: kernel/build.sh "$RUNNER_TEMP/out"
@@ -35,18 +36,20 @@ jobs:
             exit 1
           fi
 
-      - uses: oras-project/setup-oras@v1
+      - uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
         if: github.event_name != 'pull_request'
 
       - name: Publish to ghcr.io
         if: github.event_name != 'pull_request'
+        # The token through the environment, not spliced into the script by the expression.
+        env: { REGISTRY_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
         run: |
           . kernel/VERSION
-          echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u "${{ github.actor }}" --password-stdin
+          printf '%s' "$REGISTRY_TOKEN" | oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           cd "$RUNNER_TEMP/out"
           # The vmlinux as is: its blob digest is its sha256, the one the daemon fetches and checks.
           oras push "ghcr.io/coderhammer/spunto-fc-kernel:${LINUX_VERSION}-${SPUNTO_REVISION}" \
             --artifact-type application/vnd.spunto.fc-kernel \
-            --annotation "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --annotation "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             vmlinux:application/vnd.spunto.fc-kernel.vmlinux \
             config:text/plain

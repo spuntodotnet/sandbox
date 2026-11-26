@@ -168,14 +168,25 @@ async function readFile({ params, url, res }: Ctx) {
   const path = url.searchParams.get("path")
   if (!path) throw new SandboxError("?path=/absolute/path, please", "invalid")
   let started = false
+  const stream = dialAgent(svc.handleOf(r.id))
+  // A client gone: the read stops (the guest would stream on into nothing).
+  res.on("close", () => stream.destroy())
   try {
     await agentRequest(svc.handleOf(r.id), r.id, { op: "read", path }, {
       ready: (info) => {
+        // The guest's answer, into headers: a size and a mode, or nothing (a CR LF threw in writeHead).
+        if (!Number.isSafeInteger(info?.size) || info.size < 0 || !/^[0-7]{1,6}$/.test(String(info.mode))) throw new Error("the agent answered a read with no size or mode")
         started = true
-        res.writeHead(200, { "Content-Type": "application/octet-stream", "Content-Length": String(info.size), "X-Sbx-Mode": info.mode })
+        res.writeHead(200, { "Content-Type": "application/octet-stream", "Content-Length": String(info.size), "X-Sbx-Mode": String(info.mode) })
       },
-      stdout: (b) => res.write(b),
-    })
+      // As fast as the client reads, not into the daemon's memory.
+      stdout: (b) => {
+        if (!res.write(b)) {
+          stream.pause()
+          res.once("drain", () => stream.resume())
+        }
+      },
+    }, stream)
     res.end()
   } catch (err) {
     if (started) return void res.destroy(err as Error)
@@ -294,7 +305,13 @@ export function server(opts: { tcp: boolean }) {
     const m = /^\/v1\/sandboxes\/([^/]+)\/attach$/.exec(url.pathname)
     if (!authorized(req, opts.tcp)) return socket.end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n")
     if (!m || req.method !== "POST" || !/^sbx-agent\//i.test(req.headers.upgrade ?? "")) return socket.end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n")
-    attach(req, socket, head, decodeURIComponent(m[1]!))
+    let id: string
+    try {
+      id = decodeURIComponent(m[1]!)
+    } catch {
+      return socket.end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n")
+    }
+    attach(req, socket, head, id)
   })
   // Long creates (an image pulled for the first time), long streams.
   srv.requestTimeout = 0

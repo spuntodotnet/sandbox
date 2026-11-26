@@ -19,8 +19,17 @@
 #   --memory <size>         SBX_MEMORY: what the sandboxes may take together (default: RAM − 2 GB)
 set -eu
 
+# Every download is pinned by its sha256 (upstream's own checksum files, where they publish one).
 FC_VERSION=v1.17.0
+FC_SHA256=06094a1108ae9e82aa4c23a775aa92758f53f1175d422270d9d6162cb9ade558
 NODE_VERSION=v24.11.1
+NODE_SHA256=60e3b0a8500819514aca603487c254298cd776de0698d3cd08f11dba5b8289a8
+TINI_URL=https://github.com/krallin/tini/releases/download/v0.19.0/tini-static-amd64
+TINI_SHA256=c5b0666b4cb676901f90dfcb37106783c5fe2077b04590973b885950611b30ee
+BUSYBOX_URL=https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox
+BUSYBOX_SHA256=6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348
+CRANE_URL=https://github.com/google/go-containerregistry/releases/download/v0.20.6/go-containerregistry_Linux_x86_64.tar.gz
+CRANE_SHA256=c1d593d01551f2c9a3df5ca0a0be4385a839bd9b86d4a76e18d7b17d16559127
 REPO=spuntodotnet/sandbox
 O=/opt/spunto-fc
 APP=/opt/spunto-sandbox
@@ -28,6 +37,13 @@ ETC=/etc/spunto-sandbox
 
 say() { printf '\033[1m›\033[0m %s\n' "$*"; }
 die() { printf 'spunto-sandbox: %s\n' "$*" >&2; exit 1; }
+get() { curl -fsSL --proto '=https' --tlsv1.2 --retry 3 "$@"; }
+# fetch <url> <sha256> <file>: nothing is used before its bytes are the pinned ones.
+fetch() {
+  get -o "$3" "$1" || die "could not download $1"
+  echo "$2  $3" | sha256sum -c --quiet - >/dev/null 2>&1 || die "$1: not the expected sha256 ($2), not installed"
+}
+same() { [ -f "$1" ] && echo "$2  $1" | sha256sum -c --quiet - >/dev/null 2>&1; }
 
 CREATE_POOL=${SBX_CREATE_POOL:-}
 DATASET=${SPUNTO_FC_DATASET:-}
@@ -91,20 +107,26 @@ mkdir -p "$O/bin" "$O/kernels"
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 if [ ! -x "$O/bin/firecracker" ] || ! "$O/bin/firecracker" --version 2>/dev/null | grep -q "${FC_VERSION#v}"; then
-  curl -fsSL "https://github.com/firecracker-microvm/firecracker/releases/download/$FC_VERSION/firecracker-$FC_VERSION-x86_64.tgz" | tar -xz -C "$T"
+  fetch "https://github.com/firecracker-microvm/firecracker/releases/download/$FC_VERSION/firecracker-$FC_VERSION-x86_64.tgz" "$FC_SHA256" "$T/fc.tgz"
+  tar -xzf "$T/fc.tgz" -C "$T"
   R="$T/release-$FC_VERSION-x86_64"
   install -m755 "$R/firecracker-$FC_VERSION-x86_64" "$O/bin/firecracker"
   install -m755 "$R/jailer-$FC_VERSION-x86_64" "$O/bin/jailer"
   install -m755 "$R/snapshot-editor-$FC_VERSION-x86_64" "$O/bin/snapshot-editor"
 fi
-[ -x "$O/bin/tini" ] || curl -fsSL -o "$O/bin/tini" https://github.com/krallin/tini/releases/download/v0.19.0/tini-static-amd64
-[ -x "$O/bin/busybox" ] || curl -fsSL -o "$O/bin/busybox" https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox
-[ -x "$O/bin/crane" ] || curl -fsSL https://github.com/google/go-containerregistry/releases/download/v0.20.6/go-containerregistry_Linux_x86_64.tar.gz | tar -xz -C "$O/bin" crane
+# A binary already there that is not the pinned one (an older install, fetched unchecked) is replaced.
+same "$O/bin/tini" "$TINI_SHA256" || { fetch "$TINI_URL" "$TINI_SHA256" "$T/tini" && install -m755 "$T/tini" "$O/bin/tini"; }
+same "$O/bin/busybox" "$BUSYBOX_SHA256" || { fetch "$BUSYBOX_URL" "$BUSYBOX_SHA256" "$T/busybox" && install -m755 "$T/busybox" "$O/bin/busybox"; }
+if [ ! -x "$O/bin/crane" ]; then
+  fetch "$CRANE_URL" "$CRANE_SHA256" "$T/crane.tgz"
+  tar -xzf "$T/crane.tgz" -C "$T" crane && install -m755 "$T/crane" "$O/bin/crane"
+fi
 chmod 755 "$O"/bin/*
 if [ ! -x "$O/node/bin/node" ] || [ "$("$O/node/bin/node" -v)" != "$NODE_VERSION" ]; then
   say "Node $NODE_VERSION (the daemon's own, in $O/node)"
   rm -rf "$O/node.new" && mkdir -p "$O/node.new"
-  curl -fsSL "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-x64.tar.xz" | tar -xJ -C "$O/node.new" --strip-components=1
+  fetch "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-x64.tar.xz" "$NODE_SHA256" "$T/node.tar.xz"
+  tar -xJf "$T/node.tar.xz" -C "$O/node.new" --strip-components=1
   rm -rf "$O/node" && mv "$O/node.new" "$O/node"
 fi
 
@@ -115,10 +137,20 @@ if [ -n "$FROM" ]; then
   for f in sandboxd.mjs sbx.mjs sbx-agent; do [ -f "$FROM/$f" ] || die "$FROM/$f is missing (npm run build)"; done
   cp "$FROM/sandboxd.mjs" "$FROM/sbx.mjs" "$FROM/sbx-agent" "$T/"
 else
-  if [ "$VERSION" = latest ]; then URL="https://github.com/$REPO/releases/latest/download/spunto-sandbox-linux-x64.tar.gz"
-  else URL="https://github.com/$REPO/releases/download/v${VERSION#v}/spunto-sandbox-linux-x64.tar.gz"; fi
-  say "spunto-sandbox $VERSION"
-  curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "$URL" | tar -xz -C "$T" || die "could not download $URL"
+  # latest resolved to its tag first: the tarball and its SHA256SUMS then come from the same release.
+  if [ "$VERSION" = latest ]; then
+    TAG=$(get -I -o /dev/null -w '%{url_effective}' "https://github.com/$REPO/releases/latest") || die "could not resolve the latest release"
+    TAG=${TAG##*/}
+  else TAG="v${VERSION#v}"; fi
+  case "$TAG" in v[0-9]*) ;; *) die "no release found (got '$TAG')" ;; esac
+  URL="https://github.com/$REPO/releases/download/$TAG"
+  say "spunto-sandbox $TAG"
+  get -o "$T/SHA256SUMS" "$URL/SHA256SUMS" || die "could not download $URL/SHA256SUMS"
+  get -o "$T/spunto-sandbox-linux-x64.tar.gz" "$URL/spunto-sandbox-linux-x64.tar.gz" || die "could not download $URL/spunto-sandbox-linux-x64.tar.gz"
+  # Fail closed: no line for the tarball in SHA256SUMS is a failure too (sha256sum -c of nothing).
+  (cd "$T" && grep ' spunto-sandbox-linux-x64\.tar\.gz$' SHA256SUMS | sha256sum -c --quiet - >/dev/null 2>&1) \
+    || die "$URL/spunto-sandbox-linux-x64.tar.gz does not match its SHA256SUMS, not installed"
+  tar -xzf "$T/spunto-sandbox-linux-x64.tar.gz" -C "$T" || die "could not unpack $URL/spunto-sandbox-linux-x64.tar.gz"
 fi
 install -m755 "$T/sandboxd.mjs" "$APP/sandboxd.mjs.new" && mv "$APP/sandboxd.mjs.new" "$APP/sandboxd.mjs"
 install -m755 "$T/sbx.mjs" "$APP/sbx.mjs.new" && mv "$APP/sbx.mjs.new" "$APP/sbx.mjs"

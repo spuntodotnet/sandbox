@@ -107,4 +107,17 @@ describe.skipIf(!have)("the guest agent", () => {
     await expect(run({ op: "info" })).rejects.toThrow(/not this box's token/)
     expect((await run({ op: "info" }, { token: "tok-2" })).exit).toMatchObject({ code: 0 })
   })
+
+  it("answers no one but the host: a process of the box itself has its token too (MMDS)", async () => {
+    const other = spawn(BIN, ["serve", "agent.mjs"], {
+      env: { PATH: process.env.PATH, SPUNTO_SANDBOX_TOKEN: "tok-1", SBX_AGENT_LISTEN: "127.0.0.1:0", SBX_AGENT_PEER: "127.0.0.2", SPUNTO_AGENT_ENV_FILE: envFile, SPUNTO_AGENT_PIDFILE: join(dir, "pid2"), SPUNTO_AGENT_SIGNALS_FILE: join(dir, "signals2"), SBX_AGENT_LOG_DIR: join(dir, "log2") },
+      stdio: ["ignore", "ignore", "pipe"],
+    })
+    try {
+      const p = await new Promise<number>((resolve) => other.stderr!.on("data", (c: Buffer) => { const m = /listening on 127\.0\.0\.1:(\d+)/.exec(c.toString()); if (m) resolve(Number(m[1])) }))
+      await expect(request(net.connect(p, "127.0.0.1"), { op: "info", token: readFileSync(envFile, "utf8").match(/'(.*)'/)![1]! })).rejects.toThrow(/closed before the end|ECONNRESET/)
+    } finally {
+      other.kill()
+    }
+  })
 })

@@ -5,3 +5,4 @@ docs/.source
 dist
 kernel/build
 .git
+gha-creds-*.json

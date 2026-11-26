@@ -1,8 +1,8 @@
 // sbx-agent: what runs inside a Spunto Sandbox microVM so that its host can exec, open a shell,
 // read and write files and reach a port in it.
 //
-// It listens on the guest's own address (172.16.0.2, the same in every box), which nothing but the
-// host can reach: the host opens a connection from the box's network namespace, the box's namespace
+// It listens on the guest's own address (172.16.0.2, the same in every box), and answers only
+// 172.16.0.1, which nothing but the host is: the host opens a connection from the box's network namespace, the box's namespace
 // drops everything the guest sends unless it answers what the host opened, and no other box or
 // network is routed there. Each connection carries one request, framed (protocol.md):
 //
@@ -42,7 +42,11 @@ var version = "dev"
 
 const (
 	listenAddr = "172.16.0.2:47771"
-	maxFrame   = 4 << 20
+	// The host dials from the box's namespace, whose tap is 172.16.0.1. Anything else is the box
+	// itself — a user that is not root, a container of its Docker — which reads the token in MMDS
+	// as well as anyone in the box: from there, the token is no proof of being the host.
+	hostAddr = "172.16.0.1"
+	maxFrame = 4 << 20
 )
 
 // Frame types. Client → agent: hello, data (stdin or a write's bytes), close (end of stdin),
@@ -645,10 +649,11 @@ func main() {
 	}()
 	signal.Ignore(syscall.SIGPIPE, syscall.SIGHUP)
 
-	addr := listenAddr
-	// Elsewhere than in a box (its tests): SBX_AGENT_LISTEN=127.0.0.1:0 — the address it took is printed.
+	addr, peer := listenAddr, hostAddr
+	// Elsewhere than in a box (its tests): SBX_AGENT_LISTEN=127.0.0.1:0 — the address it took is
+	// printed — and any peer, or SBX_AGENT_PEER's.
 	if a := os.Getenv("SBX_AGENT_LISTEN"); a != "" {
-		addr = a
+		addr, peer = a, os.Getenv("SBX_AGENT_PEER")
 	}
 	var l net.Listener
 	var err error
@@ -669,6 +674,12 @@ func main() {
 		if err != nil {
 			time.Sleep(10 * time.Millisecond)
 			continue
+		}
+		if peer != "" {
+			if a, ok := c.RemoteAddr().(*net.TCPAddr); !ok || a.IP.String() != peer {
+				c.Close()
+				continue
+			}
 		}
 		go serve(c)
 	}

@@ -3,6 +3,7 @@
 # (pool `default`). Deleted after FC_E2E_MAX_RUN (4h): a forgotten one costs nothing.
 # `FC_E2E_RENEW=1 up.sh` stops and starts it again (4 more hours, a new IP).
 # Then scripts/try.sh installs this tree on it (docs: Contributing → On a real machine).
+# No service account on it: nothing there needs GCP, and a box escaping to it finds no token at the metadata server.
 set -euo pipefail
 PROJECT=${FC_E2E_PROJECT:-mythic-emissary-382620}
 ZONE=${FC_E2E_ZONE:-europe-west1-b}
@@ -18,6 +19,7 @@ if ! $G compute instances describe "$NAME" --zone="$ZONE" >/dev/null 2>&1; then
     --create-disk=name="$NAME-zfs",size=${FC_E2E_POOL_GB:-100}GB,type=pd-ssd,auto-delete=yes,device-name=zfs \
     --max-run-duration=${FC_E2E_MAX_RUN:-4h} --instance-termination-action=DELETE \
     --labels=purpose=sbx-e2e \
+    --no-service-account --no-scopes \
     --metadata=startup-script='#!/bin/sh
 command -v zfs >/dev/null || { apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -yq zfsutils-linux zstd; }
 zpool list default >/dev/null 2>&1 || zpool import default 2>/dev/null || zpool create -f -o ashift=12 default /dev/disk/by-id/google-zfs

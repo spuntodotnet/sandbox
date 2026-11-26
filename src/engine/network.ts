@@ -73,6 +73,9 @@ export async function ensureHostNetwork() {
   // not to depend on its place, since a machine that has the rules above only gets this one, on top.
   await rule("filter", chain, ["-o", "fcv+", "-m", "conntrack", "!", "--ctstate", "RELATED,ESTABLISHED", "-j", "DROP"])
   await rule("filter", chain, ["-i", "fcv+", "-o", out, "-j", "ACCEPT"])
+  // Out of a namespace, only its own /30's address (the guest's is SNATed to it): the same as
+  // `guardSpoof`, host-wide, for a namespace from before it.
+  await rule("filter", chain, ["-i", "fcv+", "!", "-s", "10.89.0.0/16", "-j", "DROP"])
   for (const net of BLOCKED_DESTINATIONS) await rule("filter", chain, ["-i", "fcv+", "-d", net, "-j", "DROP"])
   // Above the private ranges: a port Docker publishes on the uplink's address, as the internet sees it.
   for (const ip of uplinkAddresses(await run("ip", ["-4", "-o", "addr", "show", "dev", out])))
@@ -274,8 +277,22 @@ export async function guardSmtp(net: number, sandboxId?: string) {
   } else if (!has) await run("ip", ["netns", "exec", netns, "iptables", "-I", SMTP_RULE[0]!, "1", ...SMTP_RULE.slice(1)])
 }
 
-/** What every box's network gets, at every spawn and at the daemon's start: its share, and no SMTP. */
+/**
+ * Only the guest's own address leaves its namespace: nothing SNATs another source, and a box's root
+ * forging one (a reflection off a resolver, in a victim's name) would leave the uplink with it —
+ * the provider's network drops that on Google Cloud, not on every bare-metal machine.
+ */
+export const SPOOF_RULE = ["FORWARD", "-i", "tap0", "!", "-s", GUEST_IP, "-j", "DROP"]
+export async function guardSpoof(net: number) {
+  const { netns } = netOf(net)
+  if (!(await ok(run("ip", ["netns", "exec", netns, "iptables", "-C", ...SPOOF_RULE])))) {
+    await run("ip", ["netns", "exec", netns, "iptables", "-I", SPOOF_RULE[0]!, "1", ...SPOOF_RULE.slice(1)])
+  }
+}
+
+/** What every box's network gets, at every spawn and at the daemon's start: its own source, its share, and no SMTP. */
 export async function guardNet(net: number, sandboxId?: string) {
+  await guardSpoof(net)
   await guardSmtp(net, sandboxId)
   await shape(net)
 }

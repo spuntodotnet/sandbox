@@ -35,13 +35,14 @@ host's uplink.
 | the host, on any of its addresses | dropped |
 | another box | dropped |
 | port 25 (SMTP) | rejected; 465 and 587 (submission, authenticated) stay open |
+| anywhere, from an address not its own | dropped — no reflection off a resolver in a victim's name |
 
 **Nothing comes in.** No port of a box is published on the host. The host reaches a box from its
 namespace — that is how the daemon talks to its agent, and how `sbx port-forward` and
 `box.connect()` reach a port. Inside the namespace, nothing the guest sends is accepted unless it
 answers a connection the host opened.
 
-No IPv6 in the boxes.
+No IPv6 in the boxes: a namespace forwards none (it has no rule for it, nothing to forward to).
 
 ## The image and the disks
 
@@ -50,13 +51,17 @@ No IPv6 in the boxes.
   with `crane` and untars it there. A hostile archive — `etc -> /`, absolute symlinks, device files —
   only ever reaches that VM.
 - **The host never mounts a disk a guest wrote**: it clones it, snapshots it, sends it; it never
-  parses its filesystem.
+  parses its filesystem. Nor does its udev: no blkid of the boxes' zvols (a label the host's fstab
+  names, an LVM volume, an md array it would assemble), no partition of theirs (`volmode=dev`).
+  On a machine set up before 0.1.2, `zfs set volmode=dev <pool>/spunto` at a quiet time.
 - Images are pulled anonymously: private registries are not supported yet.
 
 ## Identity and secrets
 
 - A box's env, its agent's token included, goes in **MMDS**, never on its disk or a command line:
-  a disk snapshot or a clone carries no token, and `ps` on the host shows none.
+  a disk snapshot or a clone carries no token, and `ps` on the host shows none. Inside the box, MMDS
+  answers any process: a user that is not root reads the env too (its secrets are the box's, not
+  the user's). The token is no use to it: the agent answers only the host's address, `172.16.0.1`.
 - Each box's agent token is derived from the daemon's secret and the box's id: a fork's copy gets
   its own, and the source's stops working there.
 - The daemon's state (`/var/lib/spunto-sandbox/sandboxd.json`) and the engine's registry hold every
