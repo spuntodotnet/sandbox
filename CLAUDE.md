@@ -32,6 +32,21 @@ scripts/try.sh -- sbx ls    # this tree built, installed on it, a command run th
 
 Nothing that touches a box is proven without a real machine: run `scripts/try.sh` before saying it works.
 
+## On a Spunto worker
+
+The Spunto project « Spunto Sandbox » starts the docs site by itself (`scripts/init.sh`, `scripts/start.sh`, under
+process-compose: `pc attach`, `pc process logs site|docs -f`):
+
+| | |
+|---|---|
+| `:3000` | **the build**, as sandbox.spunto.net serves it (static export + `install.sh`, `scripts/serve.mjs`): the link to give the human who tests. Rebuilt by `scripts/start.sh` when `docs/` or `install.sh` changed, and at the end of each turn (Stop hook) |
+| `:5173` | `next dev`, hot reload: to iterate |
+
+A worker has **no KVM**: the daemon and boxes run on a throwaway GCP machine — `scripts/up.sh` then
+`scripts/try.sh` (above). gcloud is signed in by `scripts/start.sh` as `sandbox-e2e`, a service account that may
+only make, reach and delete machines and disks named `sbx-*` (its key: the project's secret
+`GCP_SERVICE_ACCOUNT_KEY_B64`). Go is in `~/.local/go/bin` (`scripts/init.sh`).
+
 ## Releases
 
 A tag `v<version>` (= package.json) → `.github/workflows/release.yml`: the tarball

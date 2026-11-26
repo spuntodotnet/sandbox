@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# process-compose, on the worker's daemon (started by scripts/start.sh): `pc attach`,
+# `pc process logs site -f`, `pc process restart docs`… Installed on first use if the image lacks it
+# (pinned version, checksum verified: the same as the spunto-worker-base image).
+set -euo pipefail
+VERSION=1.124.0
+if ! command -v process-compose >/dev/null 2>&1; then
+  case "$(uname -m)" in
+    x86_64) arch=amd64 sum=487ce011d5324b4578d3ec1860aaa1dd3a95bd4b2b433e03791f73a23d215fd3 ;;
+    aarch64) arch=arm64 sum=98e02400a05d1da74a6506a4ffb2682b1205b18f02ecfbfdea1005f9389fc52d ;;
+    *) echo "process-compose : architecture $(uname -m) not supported" >&2; exit 1 ;;
+  esac
+  tmp=$(mktemp -d)
+  curl -fsSL --retry 5 --retry-all-errors -o "$tmp/pc.tar.gz" \
+    "https://github.com/F1bonacc1/process-compose/releases/download/v$VERSION/process-compose_linux_$arch.tar.gz"
+  echo "$sum  $tmp/pc.tar.gz" | sha256sum -c --quiet -
+  tar xzf "$tmp/pc.tar.gz" -C "$tmp" process-compose
+  sudo install -m 755 "$tmp/process-compose" /usr/local/bin/process-compose
+  rm -rf "$tmp"
+fi
+mkdir -p "$HOME/.config/process-compose" "$HOME/.process-compose/logs"   # otherwise: a debug log on every call
+exec process-compose -U -u "$HOME/.process-compose/pc.sock" "$@"

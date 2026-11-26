@@ -9,9 +9,14 @@ ZONE=${FC_E2E_ZONE:-europe-west1-b}
 NAME=${FC_E2E_VM:-sbx-e2e-${WORKER_SLUG:-local}}; NAME=${NAME:0:60}
 IP=$(gcloud --project="$PROJECT" compute instances describe "$NAME" --zone="$ZONE" --format='value(networkInterfaces[0].accessConfigs[0].natIP)')
 KEY=$HOME/.ssh/google_compute_engine
-[ -f "$KEY" ] || gcloud --project="$PROJECT" compute ssh "$NAME" --zone="$ZONE" --quiet --command=true >/dev/null
 SSH="ssh -i $KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ServerAliveInterval=15 $(whoami)@$IP"
-$SSH true 2>/dev/null || gcloud --project="$PROJECT" compute ssh "$NAME" --zone="$ZONE" --quiet --command=true >/dev/null
+# gcloud puts the key in the machine's metadata; the guest takes a few seconds to install it: retry
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  $SSH true 2>/dev/null && break
+  gcloud --project="$PROJECT" compute ssh "$NAME" --zone="$ZONE" --quiet --command=true >/dev/null 2>&1 && break
+  [ "$i" = 10 ] && { echo "› no ssh to $NAME" >&2; exit 1; }
+  sleep 6
+done
 echo "› $NAME ($IP): waiting for ZFS"
 until $SSH 'test -e /run/fc-e2e-ready' 2>/dev/null; do sleep 5; done
 [ "${SKIP_BUILD:-}" = 1 ] || npm run build >/dev/null
