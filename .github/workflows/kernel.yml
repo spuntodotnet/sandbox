@@ -36,7 +36,7 @@ jobs:
             exit 1
           fi
 
-      - uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
+      - uses: oras-project/setup-oras@ac735097e22fe643015b0d19645f7c9a69942128 # v2.0.4
         if: github.event_name != 'pull_request'
 
       - name: Publish to ghcr.io
