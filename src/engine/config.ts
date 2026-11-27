@@ -18,7 +18,9 @@ export const GUEST_KERNEL = {
   version: "6.18.55-s2",
   /** = kernel/vmlinux.sha256 (a test checks it), the blob's digest on ghcr.io. */
   sha256: "88b4dfab5be8f97bf34c41b5083c3009a65debb6e4afdf6b8c2c96f0c7c44ecc",
-  repository: "coderhammer/spunto-fc-kernel",
+  repository: "spuntodotnet/spunto-fc-kernel",
+  /** Where it was published first: the same blob, asked for when the repository cannot give it. */
+  fallbacks: ["coderhammer/spunto-fc-kernel"],
 }
 export const PINNED_KERNEL = process.env.SPUNTO_FC_KERNEL ?? `${OPT}/kernels/${GUEST_KERNEL.version}/vmlinux`
 /** The filesystem an image is unpacked into: made at this size, grown in every box (`rootSizeFor`). */
