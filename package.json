@@ -1,6 +1,6 @@
 {
   "name": "@spunto/sandbox",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Firecracker microVMs on your own Linux machine: an OCI image in, a microVM in seconds. A pause keeps the memory, a fork copies a running VM. The engine behind Spunto Cloud.",
   "license": "Apache-2.0",
   "type": "module",
