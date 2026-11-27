@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, readlinkSync, renameS
 import { join } from "node:path"
 import { SandboxError } from "./types"
 import { builderOf, startBuild } from "./builds"
-import { BIN, DATASET, DRIVE_ROOT, DRIVE_WS, GUEST_KERNEL, JAIL_BASE, KVM, OPT, PINNED_KERNEL, RUN, STATE, SYSFS_NET, sizeOf } from "./config"
+import { BIN, DATASET, DRIVE_ROOT, DRIVE_WS, GUEST_KERNEL, JAIL_BASE, KVM, OPT, PINNED_KERNEL, RUN, STATE, SYSFS_NET, UDEV_RULES, sizeOf } from "./config"
 import { ms, ok, run,  } from "./host-commands"
 import { cpuLimits, ensureJailer, jailIdOf, unjail } from "./jail"
 import { removeVm } from "./lifecycle"
@@ -105,6 +105,26 @@ export async function settleRunningVmms() {
   }
 }
 
+/**
+ * A box's disks hold what its guest wrote: a label the host's fstab names (`cloudimg-rootfs`), an
+ * LVM physical volume, an md superblock. udev's blkid of them is what LVM's and mdadm's rules
+ * activate and assemble on: none, for the zvols under DATASET — ZFS's own rule (`/dev/zvol/…`, what
+ * the engine uses) is not one of persistent-storage's. Before 60, which honours the flag.
+ */
+export const ZVOL_RULE = (dataset: string) =>
+  `# spunto-fc: no blkid, LVM or md on the boxes' disks (what their guests wrote)\n` +
+  `SUBSYSTEM=="block", KERNEL=="zd*", ACTION!="remove", PROGRAM=="zvol_id $devnode", RESULT=="${dataset}/*", ENV{UDEV_DISABLE_PERSISTENT_STORAGE_RULES_FLAG}="1"\n`
+
+export async function ensureZvolRule() {
+  const file = join(UDEV_RULES, "59-spunto-fc-zvol.rules")
+  const rule = ZVOL_RULE(DATASET)
+  if (existsSync(file) && readFileSync(file, "utf8") === rule) return
+  mkdirSync(UDEV_RULES, { recursive: true })
+  writeFileSync(`${file}.new`, rule, { mode: 0o644 })
+  renameSync(`${file}.new`, file)
+  await run("udevadm", ["control", "--reload"])
+}
+
 export let hostReady: Promise<void> | null = null
 /** Directories, the launch script, the kernel, the datasets and the network rules — idempotent, at first use. */
 export function ensureHost(): Promise<void> {
@@ -119,8 +139,12 @@ export function ensureHost(): Promise<void> {
     await ensureKernel()
     if (!existsSync(KVM)) throw new SandboxError(`${KVM} is missing: this machine cannot run microVMs`)
     for (const d of [DATASET, `${DATASET}/images`, `${DATASET}/vms`, `${DATASET}/ws`, `${DATASET}/templates`, `${DATASET}/builds`]) {
-      if (!(await exists(d))) await run("zfs", ["create", "-p", "-o", "compression=lz4", d])
+      // volmode=dev: no partition of a guest's on the host (inherited by every zvol below). A machine
+      // from before has it with `zfs set volmode=dev <dataset>` — at a quiet time: ZFS makes the
+      // device of every zvol not open again.
+      if (!(await exists(d))) await run("zfs", ["create", "-p", "-o", "compression=lz4", ...(d === DATASET ? ["-o", "volmode=dev"] : []), d])
     }
+    await ensureZvolRule().catch((err) => console.error(`[firecracker] udev rule for the boxes' disks not set: ${err instanceof Error ? err.message : err}`))
     await ensureMemRoot()
     await ensureScratch()
     await ensureHostNetwork()

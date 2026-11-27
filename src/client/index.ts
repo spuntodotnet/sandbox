@@ -187,12 +187,27 @@ export class SandboxProcess {
     this.exited = new Promise((resolve, reject) => {
       let done = false
       stream.on("data", (c: Buffer) => {
-        for (const f of reader.push(c)) {
-          if (f.type === T.ready) this.pid = json(f.payload).pid
-          else if (f.type === T.stdout) this.listeners.stdout.forEach((l) => l(f.payload))
-          else if (f.type === T.stderr) this.listeners.stderr.forEach((l) => l(f.payload))
-          else if (f.type === T.exit) ((done = true), resolve(json(f.payload)), stream.destroy())
-          else if (f.type === T.error) ((done = true), reject(new Error(json(f.payload).message)), stream.destroy())
+        // Frames come from the box: one too big or not JSON ends this process, not the program using the SDK.
+        try {
+          for (const f of reader.push(c)) {
+            if (f.type === T.ready) this.pid = json(f.payload).pid
+            else if (f.type === T.stdout) this.listeners.stdout.forEach((l) => l(f.payload))
+            else if (f.type === T.stderr) this.listeners.stderr.forEach((l) => l(f.payload))
+            else if (f.type === T.exit) {
+              const exit = json<Exit>(f.payload)
+              done = true
+              resolve(exit)
+              stream.destroy()
+            } else if (f.type === T.error) {
+              const { message } = json(f.payload)
+              done = true
+              reject(new Error(String(message)))
+              stream.destroy()
+            }
+          }
+        } catch (err) {
+          if (!done) ((done = true), reject(err))
+          stream.destroy()
         }
       })
       stream.on("close", () => done || reject(new Error("the connection to the sandbox closed before the process ended")))
@@ -299,15 +314,22 @@ export class Sandbox {
       },
     })
     s.on("data", (c: Buffer) => {
-      for (const f of reader.push(c)) {
-        if (f.type === T.ready) ready()
-        else if (f.type === T.stdout) d.push(f.payload)
-        else if (f.type === T.exit) (d.push(null), s.destroy())
-        else if (f.type === T.error) {
-          const e = new Error(json(f.payload).message)
-          failed(e)
-          d.destroy(e)
+      // As in SandboxProcess: what the box sends fails this connection at worst.
+      try {
+        for (const f of reader.push(c)) {
+          if (f.type === T.ready) ready()
+          else if (f.type === T.stdout) d.push(f.payload)
+          else if (f.type === T.exit) (d.push(null), s.destroy())
+          else if (f.type === T.error) {
+            const e = new Error(String(json(f.payload).message))
+            failed(e)
+            d.destroy(e)
+          }
         }
+      } catch (err) {
+        failed(err as Error)
+        d.destroy(err as Error)
+        s.destroy()
       }
     })
     s.on("close", () => d.push(null))

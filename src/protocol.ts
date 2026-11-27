@@ -87,12 +87,24 @@ export function request(stream: Duplex, hello: Hello, on: { ready?: (r: any) => 
       } catch (err) {
         return done(() => reject(err))
       }
-      for (const f of frames) {
-        if (f.type === T.ready) on.ready?.(json(f.payload))
-        else if (f.type === T.stdout) on.stdout?.(f.payload)
-        else if (f.type === T.stderr) on.stderr?.(f.payload)
-        else if (f.type === T.exit) done(() => resolve(json(f.payload)))
-        else if (f.type === T.error) done(() => reject(new Error(json<{ message: string }>(f.payload).message)))
+      // What the guest sends is the guest's: a frame that is not JSON, or that the caller's `ready`
+      // refuses, fails this request — thrown in a stream's handler, it took the whole daemon along.
+      try {
+        for (const f of frames) {
+          if (f.type === T.ready) on.ready?.(json(f.payload))
+          else if (f.type === T.stdout) on.stdout?.(f.payload)
+          else if (f.type === T.stderr) on.stderr?.(f.payload)
+          else if (f.type === T.exit) {
+            const exit = json<Exit>(f.payload)
+            done(() => resolve(exit))
+          } else if (f.type === T.error) {
+            const { message } = json<{ message: string }>(f.payload)
+            done(() => reject(new Error(String(message))))
+          }
+        }
+      } catch (err) {
+        done(() => reject(err))
+        stream.destroy()
       }
     })
     stream.on("error", (err) => done(() => reject(err)))

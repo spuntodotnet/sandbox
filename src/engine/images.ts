@@ -167,6 +167,9 @@ export const digests = new Map<string, { at: number; digest: Promise<string | nu
  * unpacker's pull). Null when the registry cannot say: unreachable, an image it does not know.
  */
 export function digestOf(image: string): Promise<string | null> {
+  // Asked from the host, outside any box's firewall: never for what the unpacker would refuse, nor
+  // a registry on an address no box reaches (the host's network, probed in a box's name).
+  if (!IMAGE_REF.test(image) || unreachableRegistry(image)) return Promise.resolve(null)
   const cached = digests.get(image)
   if (cached && Date.now() - cached.at < DIGEST_TTL_MS) return cached.digest
   const digest = run(BIN("crane"), ["digest", image], { timeoutMs: 30_000 }).then(
@@ -180,6 +183,18 @@ export function digestOf(image: string): Promise<string | null> {
   // A failure is not remembered: the next box asks again.
   void digest.then((d) => d === null && digests.get(image)?.digest === digest && digests.delete(image))
   return digest
+}
+
+/** A reference whose registry is an address of a range boxes never reach (`BLOCKED_DESTINATIONS`, loopback). Pure. */
+export function unreachableRegistry(image: string) {
+  const host = image.split("/")[0]!
+  if (!image.includes("/") || !/[.:]|^localhost$/.test(host)) return false
+  const name = host.replace(/^\[|\](:\d+)?$|:\d+$/g, "").toLowerCase()
+  if (name === "localhost" || name === "::1" || /^(fc|fd|fe80)/.test(name) && name.includes(":")) return true
+  const m = /^(\d+)\.(\d+)\.\d+\.\d+$/.exec(name)
+  if (!m) return false
+  const [a, b] = [Number(m[1]), Number(m[2])]
+  return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b < 128) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b < 32) || (a === 192 && b === 168)
 }
 
 /**

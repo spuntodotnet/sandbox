@@ -3,6 +3,8 @@ import { appendFileSync, mkdtempSync, readFileSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
+import { unreachableRegistry } from "../src/engine/images"
+import { ZVOL_RULE } from "../src/engine/host"
 import { BALLOON, BuildLog, ConsoleTail, GUEST_INIT, GUEST_KERNEL, IMAGE_REF, UNPACK_INIT, _test, admitMibFor, buildRefOf, droppableCache, kernelArgs, memoryRoom, netOf, repositoryOf, uplinkAddresses } from "../src/engine"
 
 describe("Firecracker backend", () => {
@@ -14,10 +16,10 @@ describe("Firecracker backend", () => {
 
   it("reads the uplink's IPv4 addresses, whose published ports a box may reach", () => {
     const out = [
-      "2: eno3    inet 51.255.95.20/24 metric 100 brd 51.255.95.255 scope global dynamic eno3\\       valid_lft 74011sec preferred_lft 74011sec",
-      "2: eno3    inet 51.255.95.21/32 scope global eno3\\       valid_lft forever preferred_lft forever",
+      "2: eno3    inet 203.0.113.20/24 metric 100 brd 203.0.113.255 scope global dynamic eno3\\       valid_lft 74011sec preferred_lft 74011sec",
+      "2: eno3    inet 203.0.113.21/32 scope global eno3\\       valid_lft forever preferred_lft forever",
     ].join("\n")
-    expect(uplinkAddresses(out)).toEqual(["51.255.95.20", "51.255.95.21"])
+    expect(uplinkAddresses(out)).toEqual(["203.0.113.20", "203.0.113.21"])
     expect(uplinkAddresses("")).toEqual([])
   })
 
@@ -88,6 +90,17 @@ describe("Firecracker backend", () => {
   it("names an image disk after the image and the init baked into it", () => {
     expect(_test.imageIdOf("a:1")).toMatch(/^[0-9a-f]{16}$/)
     expect(_test.imageIdOf("a:1")).not.toBe(_test.imageIdOf("a:2"))
+  })
+
+  it("never asks, from the host, a registry on an address no box reaches", () => {
+    for (const r of ["10.0.0.5:5000/a", "127.0.0.1/a:1", "localhost:5000/a", "localhost/a", "169.254.169.254/x", "172.20.1.1/x", "192.168.1.1:80/x", "100.64.0.1/x", "[fd00::1]:5000/a", "[::1]/a"])
+      expect(unreachableRegistry(r), r).toBe(true)
+    for (const r of ["ubuntu:24.04", "ghcr.io/coderhammer/spunto-worker-base:latest", "8.8.8.8/x", "172.32.0.1/x", "library/node:24", "docker.io/library/node@sha256:ab"])
+      expect(unreachableRegistry(r), r).toBe(false)
+  })
+
+  it("keeps udev's blkid, LVM and md off the boxes' disks, and only theirs", () => {
+    expect(ZVOL_RULE("tank/spunto")).toContain('PROGRAM=="zvol_id $devnode", RESULT=="tank/spunto/*", ENV{UDEV_DISABLE_PERSISTENT_STORAGE_RULES_FLAG}="1"')
   })
 
   it("takes the tag off a reference, not a registry's port", () => {

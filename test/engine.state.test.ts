@@ -11,7 +11,7 @@ const host = vi.hoisted(() => {
   const { mkdtempSync } = require("node:fs") as typeof import("node:fs")
   const { tmpdir } = require("node:os") as typeof import("node:os")
   const root = mkdtempSync(`${tmpdir()}/fc-state-`)
-  for (const [k, v] of Object.entries({ OPT: "opt", STATE: "state", RUN: "run", KVM: "kvm", KERNEL: "opt/kernels/default", JAILER_BIN: "opt/bin/jailer", ZVOL_DIR: "zvol", MEMINFO: "meminfo", CGROUP_ROOT: "cgroup", MOUNTS: "mounts", SYSFS_NET: "sysnet", KSTAT: "kstat" })) {
+  for (const [k, v] of Object.entries({ OPT: "opt", STATE: "state", RUN: "run", KVM: "kvm", KERNEL: "opt/kernels/default", JAILER_BIN: "opt/bin/jailer", ZVOL_DIR: "zvol", MEMINFO: "meminfo", CGROUP_ROOT: "cgroup", MOUNTS: "mounts", SYSFS_NET: "sysnet", KSTAT: "kstat", UDEV_RULES: "udev" })) {
     process.env[`SPUNTO_FC_${k}`] = `${root}/${v}`
   }
   process.env.SPUNTO_FC_UPLINK = "eth0"
@@ -1930,6 +1930,8 @@ describe("Firecracker backend — the network, the disks and the host's measures
     host.smtpRules.clear()
     host.smtpRules.add("fc402")
     process.env.SPUNTO_FC_SMTP_ALLOW = "n3, other"
+    // Namespaces, and a host, from before the rule against forged sources.
+    host.failing = / -C (FORWARD -i tap0 !|DOCKER-USER -i fcv\+ !)/
     try {
       writeFileSync(join(STATE, "registry.json"), JSON.stringify({ vms: { [a]: box(a, 401, { state: "running" }), [b]: box(b, 402, { state: "running" }) }, templates: {}, images: {}, builds: {} }))
       _test.restart()
@@ -1939,11 +1941,15 @@ describe("Firecracker backend — the network, the disks and the host's measures
       await ensureHost()
     } finally {
       delete process.env.SPUNTO_FC_SMTP_ALLOW
+      host.failing = null
     }
     expect(host.commands).toContain(`tc filter add dev fcv401 ingress pref 1 handle 1 matchall action skbedit priority ${netClassOf(401)} pipe action mirred egress redirect dev fcifbu`)
     expect(host.commands).toContain(`tc filter add dev fcv402 egress pref 1 handle 1 matchall action skbedit priority ${netClassOf(402)} pipe action mirred egress redirect dev fcifbd`)
     expect(host.smtpRules.has("fc401")).toBe(true)
     expect(host.smtpRules.has("fc402")).toBe(false)
+    // Their own source only, and host-wide for any namespace.
+    expect(host.commands).toContain("ip netns exec fc401 iptables -I FORWARD 1 -i tap0 ! -s 172.16.0.2 -j DROP")
+    expect(host.commands).toContain("iptables -t filter -I DOCKER-USER 1 -i fcv+ ! -s 10.89.0.0/16 -j DROP")
     // Nothing stopped or started.
     expect(host.commands.some((c) => c.startsWith("systemd-run") || c.startsWith("systemctl stop"))).toBe(false)
     expect(host.active.has(`spunto-fc-${a}`) && host.active.has(`spunto-fc-${b}`)).toBe(true)

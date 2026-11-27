@@ -37,7 +37,7 @@ your machine without the rest of Spunto.
 - **Two disks**: `/` (a copy-on-write clone of the image) and `/workspace` (kept across rebuilds). ZFS
   underneath: a clone costs nothing, a box only takes what it writes.
 - **Out to the internet only**: no box reaches the host, another box, a private network or a cloud's
-  metadata server; outgoing SMTP is closed. Nothing comes in: the host reaches the box from its
+  metadata server, nor send from an address not its own; outgoing port 25 is closed. Nothing comes in: the host reaches the box from its
   namespace, and `sbx port-forward` / `box.connect(port)` are how you reach a port.
 - **Bounded**: CPU (a quota and an equal weight per box), network (a ceiling per box, equal shares
   when the uplink is full), memory (a box only starts if the machine has room for it — never one

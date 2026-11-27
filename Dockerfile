@@ -1,5 +1,5 @@
 # sandbox.spunto.net: the docs site (docs/, a static export) and install.sh, served by nginx on 8080.
-# Built and pushed by .github/workflows/deploy.yml; run by the ops stack of test-2 (coderhammer/work).
+# Built and pushed by .github/workflows/site.yml; run by the ops stack of test-2 (coderhammer/work).
 FROM node:24-alpine AS build
 WORKDIR /src/docs
 COPY docs/package.json docs/package-lock.json ./

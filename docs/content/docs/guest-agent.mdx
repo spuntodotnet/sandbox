@@ -35,6 +35,8 @@ it has.
 - **Files**: read in a stream; written to a temporary name and renamed, parents made, mode set — never
   half a file.
 - **Ports**: a TCP connection from inside the box, to its `127.0.0.1` by default.
+- **Who it answers**: `172.16.0.1` only, the host in the box's namespace — never a process of the
+  box, nor a container of its Docker, which may read the token in MMDS.
 - **Its token**: the box's `SPUNTO_SANDBOX_TOKEN`, never handed to the processes it starts. After a
   fork, the copy's init puts the copy's env in place and signals the agent (`SIGUSR2`): it reads the
   new token, and nothing stops.

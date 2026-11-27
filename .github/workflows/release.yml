@@ -1,18 +1,25 @@
 name: Release
 # A tag v<version> (the version of package.json): the install tarball and the npm tarball, as
-# release assets, and that same npm tarball published as @spunto/sandbox. install.sh fetches the first.
+# release assets, and that same npm tarball published as @spunto/sandbox. install.sh fetches the first,
+# checked against SHA256SUMS.
+#
+# Two jobs: `build` runs the dependencies' code (npm ci's lifecycle scripts, the tests) with a read-only
+# token and nothing else; `publish` only gets its tarballs, and alone holds contents: write and the OIDC
+# token, behind the `release` environment (a required reviewer). No dependency cache: nothing a PR's run
+# could have written goes into a release.
 on:
   push: { tags: ["v*"] }
-permissions: { contents: write, id-token: write } # id-token: npm's trusted publishing, no token stored
+permissions: { contents: read }
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: npm }
-      - uses: actions/setup-go@v5
-        with: { go-version: "1.24", cache-dependency-path: guest/go.mod }
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: 24 }
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with: { go-version: "1.24", cache: false }
       - name: The tag is the package's version
         run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
       - run: npm ci && npm run build && npm test
@@ -21,7 +28,28 @@ jobs:
           tar -czf spunto-sandbox-linux-x64.tar.gz -C dist sandboxd.mjs sbx.mjs sbx-agent
           npm pack
           sha256sum spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh > SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            spunto-sandbox-linux-x64.tar.gz
+            spunto-sandbox-*.tgz
+            install.sh
+            SHA256SUMS
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    permissions: { contents: write, id-token: write } # id-token: npm's trusted publishing, no token stored
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: { name: release }
+      - run: sha256sum -c SHA256SUMS
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: 24 }
       - env: { GH_TOKEN: "${{ github.token }}" }
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh SHA256SUMS
+        run: gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --generate-notes spunto-sandbox-linux-x64.tar.gz spunto-sandbox-*.tgz install.sh SHA256SUMS
       # Trusted publisher on npmjs.com: this repository, release.yml (npm trust github, 2026-11-25)
-      - run: npm publish ./spunto-sandbox-*.tgz --access public --provenance
+      - run: npm publish ./spunto-sandbox-*.tgz --access public --provenance --ignore-scripts
