@@ -2,8 +2,9 @@ name: Guest kernel
 
 # The microVMs' kernel (kernel/), built reproducibly: every build must give exactly the sha256 of
 # kernel/vmlinux.sha256 — what the engine pins and checks (GUEST_KERNEL). On main, published on
-# ghcr.io as an OCI blob addressed by that sha256 (the public package coderhammer/spunto-fc-kernel,
-# whose Actions access must include this repository).
+# ghcr.io as an OCI blob addressed by that sha256: the public package spuntodotnet/spunto-fc-kernel,
+# this repository's own (its GITHUB_TOKEN may write it; coderhammer/spunto-fc-kernel, the first one,
+# refused it — kept as it is, the engine falls back on it).
 
 on:
   push:
@@ -48,7 +49,7 @@ jobs:
           printf '%s' "$REGISTRY_TOKEN" | oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           cd "$RUNNER_TEMP/out"
           # The vmlinux as is: its blob digest is its sha256, the one the daemon fetches and checks.
-          oras push "ghcr.io/coderhammer/spunto-fc-kernel:${LINUX_VERSION}-${SPUNTO_REVISION}" \
+          oras push "ghcr.io/spuntodotnet/spunto-fc-kernel:${LINUX_VERSION}-${SPUNTO_REVISION}" \
             --artifact-type application/vnd.spunto.fc-kernel \
             --annotation "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             vmlinux:application/vnd.spunto.fc-kernel.vmlinux \

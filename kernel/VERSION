@@ -1,5 +1,5 @@
 # Sourced by build.sh and read by the CI workflow (fc-kernel.yml). The published artifact is
-# ghcr.io/coderhammer/spunto-fc-kernel:<LINUX_VERSION>-<SPUNTO_REVISION>. A change to any config
+# ghcr.io/spuntodotnet/spunto-fc-kernel:<LINUX_VERSION>-<SPUNTO_REVISION>. A change to any config
 # file of this directory bumps SPUNTO_REVISION; a new kernel resets it to s1.
 LINUX_VERSION=6.18.55
 LINUX_SHA256=f410638061a165c12f42ab871d2f3fcd525515359b5faeee80969cff84524df9

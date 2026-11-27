@@ -56,11 +56,21 @@ export async function fetchKernel() {
   const KERNEL = PINNED_KERNEL
   if (!existsSync(KERNEL) || sha256Of(KERNEL) !== GUEST_KERNEL.sha256) {
     const t0 = performance.now()
-    const { repository, sha256 } = GUEST_KERNEL
-    const auth = (await (await fetch(`https://ghcr.io/token?scope=repository:${repository}:pull`, { signal: AbortSignal.timeout(30_000) })).json()) as { token?: string }
-    const res = await fetch(`https://ghcr.io/v2/${repository}/blobs/sha256:${sha256}`, { headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, signal: AbortSignal.timeout(5 * 60_000) })
-    if (!res.ok) throw new SandboxError(`guest kernel ${GUEST_KERNEL.version}: ghcr.io answered ${res.status}`)
-    const body = Buffer.from(await res.arrayBuffer())
+    const { sha256 } = GUEST_KERNEL
+    let body: Buffer | null = null
+    const failed: string[] = []
+    for (const repository of [GUEST_KERNEL.repository, ...GUEST_KERNEL.fallbacks]) {
+      try {
+        const auth = (await (await fetch(`https://ghcr.io/token?scope=repository:${repository}:pull`, { signal: AbortSignal.timeout(30_000) })).json()) as { token?: string }
+        const res = await fetch(`https://ghcr.io/v2/${repository}/blobs/sha256:${sha256}`, { headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, signal: AbortSignal.timeout(5 * 60_000) })
+        if (!res.ok) throw new Error(`answered ${res.status}`)
+        body = Buffer.from(await res.arrayBuffer())
+        break
+      } catch (err) {
+        failed.push(`${repository}: ${err instanceof Error ? err.message : err}`)
+      }
+    }
+    if (!body) throw new SandboxError(`guest kernel ${GUEST_KERNEL.version}: ghcr.io could not give it (${failed.join("; ")})`)
     const got = createHash("sha256").update(body).digest("hex")
     if (got !== sha256) throw new SandboxError(`guest kernel ${GUEST_KERNEL.version}: sha256 ${got}, expected ${sha256} — not installed`)
     mkdirSync(join(KERNEL, ".."), { recursive: true })
