@@ -1,0 +1,81 @@
+{
+  "voice": "en_US-ryan-high",
+  "provider": "piper",
+  "scenes": [
+    {
+      "id": "rule",
+      "lines": [
+        {
+          "text": "Spunto Sandbox starts from one rule: the code in a box is not trusted.",
+          "file": "voice/walls/rule-0.wav",
+          "duration": 3.936
+        },
+        {
+          "text": "It may be root, the all-powerful user, inside its box. Outside, that changes nothing. So the sandbox stacks walls.",
+          "file": "voice/walls/rule-1.wav",
+          "duration": 7.338
+        }
+      ]
+    },
+    {
+      "id": "wall-vm",
+      "lines": [
+        {
+          "text": "The first wall is the virtual machine: its own kernel, its own disks, and KVM between it and the hardware.",
+          "file": "voice/walls/wall-vm-0.wav",
+          "duration": 6.026
+        }
+      ]
+    },
+    {
+      "id": "wall-fc",
+      "lines": [
+        {
+          "text": "The second is Firecracker: few devices, and a filter that lets it make only the system calls it needs.",
+          "file": "voice/walls/wall-fc-0.wav",
+          "duration": 5.492
+        }
+      ]
+    },
+    {
+      "id": "wall-jail",
+      "lines": [
+        {
+          "text": "The third is the jailer. Each Firecracker runs locked in a folder of its own, as a user of its own, with no special right.",
+          "file": "voice/walls/wall-jail-0.wav",
+          "duration": 6.478
+        },
+        {
+          "text": "Someone who broke out of the VM would land in an empty cell.",
+          "file": "voice/walls/wall-jail-1.wav",
+          "duration": 2.984
+        }
+      ]
+    },
+    {
+      "id": "wall-limits",
+      "lines": [
+        {
+          "text": "Fourth, limits: each box gets its share of processor, memory and network. One box cannot starve the others.",
+          "file": "voice/walls/wall-limits-0.wav",
+          "duration": 6.525
+        }
+      ]
+    },
+    {
+      "id": "wall-net",
+      "lines": [
+        {
+          "text": "Last, the network. A box reaches the internet, but not the host, not the other boxes, not your local network, and not the cloud's metadata server, which hands out its keys.",
+          "file": "voice/walls/wall-net-0.wav",
+          "duration": 8.916
+        },
+        {
+          "text": "And nothing reaches a box unless the host opens the way.",
+          "file": "voice/walls/wall-net-1.wav",
+          "duration": 2.879
+        }
+      ]
+    }
+  ]
+}

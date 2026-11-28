@@ -1,0 +1,75 @@
+{
+  "provider": "piper",
+  "voice": "en_US-ryan-high",
+  "lengthScale": 0.95,
+  "elevenlabs": {
+    "voiceId": "TBD",
+    "model": "eleven_v4",
+    "language": "en",
+    "settings": {
+      "stability": 0.45,
+      "similarity_boost": 0.8,
+      "style": 0.25
+    }
+  },
+  "scenes": [
+    {
+      "id": "rule",
+      "lines": [
+        {
+          "text": "Spunto Sandbox starts from one rule: the code in a box is not trusted."
+        },
+        {
+          "text": "It may be root, the all-powerful user, inside its box. Outside, that changes nothing. So the sandbox stacks walls."
+        }
+      ]
+    },
+    {
+      "id": "wall-vm",
+      "lines": [
+        {
+          "text": "The first wall is the virtual machine: its own kernel, its own disks, and KVM between it and the hardware.",
+          "say": "The first wall is the virtual machine: its own kernel, its own disks, and K V M between it and the hardware."
+        }
+      ]
+    },
+    {
+      "id": "wall-fc",
+      "lines": [
+        {
+          "text": "The second is Firecracker: few devices, and a filter that lets it make only the system calls it needs."
+        }
+      ]
+    },
+    {
+      "id": "wall-jail",
+      "lines": [
+        {
+          "text": "The third is the jailer. Each Firecracker runs locked in a folder of its own, as a user of its own, with no special right."
+        },
+        {
+          "text": "Someone who broke out of the VM would land in an empty cell."
+        }
+      ]
+    },
+    {
+      "id": "wall-limits",
+      "lines": [
+        {
+          "text": "Fourth, limits: each box gets its share of processor, memory and network. One box cannot starve the others."
+        }
+      ]
+    },
+    {
+      "id": "wall-net",
+      "lines": [
+        {
+          "text": "Last, the network. A box reaches the internet, but not the host, not the other boxes, not your local network, and not the cloud's metadata server, which hands out its keys."
+        },
+        {
+          "text": "And nothing reaches a box unless the host opens the way."
+        }
+      ]
+    }
+  ]
+}

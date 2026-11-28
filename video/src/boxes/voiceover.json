@@ -1,0 +1,91 @@
+{
+  "voice": "en_US-ryan-high",
+  "provider": "piper",
+  "scenes": [
+    {
+      "id": "untrusted",
+      "lines": [
+        {
+          "text": "Now say you want to run code you don't trust: a script from the internet, or code an AI agent just wrote.",
+          "file": "voice/boxes/untrusted-0.wav",
+          "duration": 5.782
+        },
+        {
+          "text": "You want to put it in a box.",
+          "file": "voice/boxes/untrusted-1.wav",
+          "duration": 1.393
+        }
+      ]
+    },
+    {
+      "id": "container",
+      "lines": [
+        {
+          "text": "The first kind of box is a container, like Docker.",
+          "file": "voice/boxes/container-0.wav",
+          "duration": 2.612
+        },
+        {
+          "text": "The kernel shows the code its own files, its own processes, its own network. It looks like a machine of its own.",
+          "file": "voice/boxes/container-1.wav",
+          "duration": 5.642
+        }
+      ]
+    },
+    {
+      "id": "shared",
+      "lines": [
+        {
+          "text": "But every container on the machine talks to the same kernel.",
+          "file": "voice/boxes/shared-0.wav",
+          "duration": 2.763
+        },
+        {
+          "text": "One bug in any of its system calls, and the code is out of its box: in the host, and in every other container.",
+          "file": "voice/boxes/shared-1.wav",
+          "duration": 5.677
+        }
+      ]
+    },
+    {
+      "id": "vm",
+      "lines": [
+        {
+          "text": "The second kind of box is a virtual machine.",
+          "file": "voice/boxes/vm-0.wav",
+          "duration": 2.322
+        },
+        {
+          "text": "The code gets a kernel of its own, running on pretend hardware: a processor, memory, a disk and a network card.",
+          "file": "voice/boxes/vm-1.wav",
+          "duration": 6.49
+        }
+      ]
+    },
+    {
+      "id": "kvm",
+      "lines": [
+        {
+          "text": "Today's processors run this at almost full speed. In Linux, the part that drives them is called KVM.",
+          "file": "voice/boxes/kvm-0.wav",
+          "duration": 6.026
+        },
+        {
+          "text": "The code in the box can wreck its own kernel. The real one stays out of reach.",
+          "file": "voice/boxes/kvm-1.wav",
+          "duration": 3.971
+        }
+      ]
+    },
+    {
+      "id": "house",
+      "lines": [
+        {
+          "text": "A container is a room in a shared house. A virtual machine is a house of its own.",
+          "file": "voice/boxes/house-0.wav",
+          "duration": 4.667
+        }
+      ]
+    }
+  ]
+}

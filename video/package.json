@@ -1,0 +1,32 @@
+{
+  "name": "spunto-sandbox-videos",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "The videos of sandbox.spunto.net's « From zero » page, in Remotion.",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/fonts.mjs",
+    "dev": "remotion studio",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.547",
+    "@remotion/fonts": "4.0.547",
+    "@remotion/media": "4.0.547",
+    "@remotion/transitions": "^4.0.547",
+    "lucide-react": "^1.82.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.547"
+  },
+  "devDependencies": {
+    "@fontsource-variable/geist": "^5.2.0",
+    "@fontsource-variable/jetbrains-mono": "^5.2.0",
+    "@fontsource/young-serif": "^5.2.0",
+    "@remotion/bundler": "^4.0.547",
+    "@remotion/renderer": "^4.0.547",
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  },
+  "sideEffects": false
+}

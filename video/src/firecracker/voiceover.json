@@ -1,0 +1,91 @@
+{
+  "voice": "en_US-ryan-high",
+  "provider": "piper",
+  "scenes": [
+    {
+      "id": "vmm",
+      "lines": [
+        {
+          "text": "KVM runs the processor and the memory. Everything else, the disk, the network card, is pretended by an ordinary program on the host: the virtual machine monitor.",
+          "file": "voice/firecracker/vmm-0.wav",
+          "duration": 8.777
+        }
+      ]
+    },
+    {
+      "id": "qemu",
+      "lines": [
+        {
+          "text": "The classic one, QEMU, can pretend to be a whole PC: USB, sound cards, even a floppy drive.",
+          "file": "voice/firecracker/qemu-0.wav",
+          "duration": 6.304
+        },
+        {
+          "text": "Each of those devices is code that a hostile guest can poke at.",
+          "file": "voice/firecracker/qemu-1.wav",
+          "duration": 3.402
+        }
+      ]
+    },
+    {
+      "id": "venom",
+      "lines": [
+        {
+          "text": "In 2015, a bug in QEMU's floppy drive, called VENOM, let code in a virtual machine break out onto the host.",
+          "file": "voice/firecracker/venom-0.wav",
+          "duration": 7.001
+        },
+        {
+          "text": "Almost none of those machines ever used a floppy.",
+          "file": "voice/firecracker/venom-1.wav",
+          "duration": 2.577
+        }
+      ]
+    },
+    {
+      "id": "fc",
+      "lines": [
+        {
+          "text": "Firecracker takes the opposite road. Amazon wrote it in Rust to run AWS Lambda, and open-sourced it in 2018.",
+          "file": "voice/firecracker/fc-0.wav",
+          "duration": 7.14
+        },
+        {
+          "text": "It pretends a handful of devices: a disk, a network card, a console, and little else.",
+          "file": "voice/firecracker/fc-1.wav",
+          "duration": 5.283
+        }
+      ]
+    },
+    {
+      "id": "micro",
+      "lines": [
+        {
+          "text": "Less to pretend is less to attack, and less to wait for: Firecracker can start a machine's code in about 125 milliseconds, with under five megabytes of overhead.",
+          "file": "voice/firecracker/micro-0.wav",
+          "duration": 9.59
+        },
+        {
+          "text": "That is a microVM.",
+          "file": "voice/firecracker/micro-1.wav",
+          "duration": 1.242
+        }
+      ]
+    },
+    {
+      "id": "snapshot",
+      "lines": [
+        {
+          "text": "It can also freeze a running machine to disk, and bring it back in milliseconds.",
+          "file": "voice/firecracker/snapshot-0.wav",
+          "duration": 4.029
+        },
+        {
+          "text": "Spunto Sandbox is built on it.",
+          "file": "voice/firecracker/snapshot-1.wav",
+          "duration": 1.95
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "voice": "en_US-ryan-high",
+  "provider": "piper",
+  "scenes": [
+    {
+      "id": "intro",
+      "lines": [
+        {
+          "text": "Walls lower the risk. They don't remove it. Here is what remains.",
+          "file": "voice/risks/intro-0.wav",
+          "duration": 3.46
+        }
+      ]
+    },
+    {
+      "id": "bugs",
+      "lines": [
+        {
+          "text": "Bugs. KVM and Firecracker are code too, and flaws are found in them now and then.",
+          "file": "voice/risks/bugs-0.wav",
+          "duration": 4.748
+        },
+        {
+          "text": "The answer is boring, and it works: keep the host's kernel and Firecracker up to date.",
+          "file": "voice/risks/bugs-1.wav",
+          "duration": 4.644
+        }
+      ]
+    },
+    {
+      "id": "cpu",
+      "lines": [
+        {
+          "text": "The processor itself. In 2018, attacks like Spectre showed that a program can guess secrets from how fast the processor answers.",
+          "file": "voice/risks/cpu-0.wav",
+          "duration": 7.755
+        },
+        {
+          "text": "Kernel and processor updates block the known ones. The host must have them.",
+          "file": "voice/risks/cpu-1.wav",
+          "duration": 4.005
+        }
+      ]
+    },
+    {
+      "id": "inside",
+      "lines": [
+        {
+          "text": "The biggest risk is in the box. It reaches the internet.",
+          "file": "voice/risks/inside-0.wav",
+          "duration": 2.717
+        },
+        {
+          "text": "Any secret you put in it, a token, a password, can be sent away by the code you run, or by an agent tricked into doing it.",
+          "file": "voice/risks/inside-1.wav",
+          "duration": 6.861
+        }
+      ]
+    },
+    {
+      "id": "abuse",
+      "lines": [
+        {
+          "text": "A box can also be turned against others: mining, spam, attacks.",
+          "file": "voice/risks/abuse-0.wav",
+          "duration": 4.191
+        },
+        {
+          "text": "That is why its bandwidth is capped, and outgoing mail on port twenty-five is blocked.",
+          "file": "voice/risks/abuse-1.wav",
+          "duration": 4.354
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "lines": [
+        {
+          "text": "So a sandbox doesn't make code trustworthy. It decides how far the damage can go.",
+          "file": "voice/risks/end-0.wav",
+          "duration": 4.098
+        },
+        {
+          "text": "Give each box only what it needs, and keep the walls up to date.",
+          "file": "voice/risks/end-1.wav",
+          "duration": 3.251
+        }
+      ]
+    }
+  ]
+}
