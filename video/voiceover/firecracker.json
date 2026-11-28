@@ -1,0 +1,86 @@
+{
+  "provider": "elevenlabs",
+  "voice": "en_US-ryan-high",
+  "lengthScale": 0.95,
+  "elevenlabs": {
+    "voiceId": "JBFqnCBsd6RMkjVDRZzb",
+    "model": "eleven_v4",
+    "language": "en",
+    "settings": {
+      "stability": 0.45,
+      "similarity_boost": 0.8,
+      "style": 0.25
+    },
+    "voiceName": "George"
+  },
+  "scenes": [
+    {
+      "id": "vmm",
+      "lines": [
+        {
+          "text": "KVM runs the processor and the memory. Everything else, the disk, the network card, is pretended by an ordinary program on the host: the virtual machine monitor.",
+          "say": "K V M runs the processor and the memory. Everything else, the disk, the network card, is pretended by an ordinary program on the host: the virtual machine monitor."
+        }
+      ]
+    },
+    {
+      "id": "qemu",
+      "lines": [
+        {
+          "text": "The classic one, QEMU, can pretend to be a whole PC: USB, sound cards, even a floppy drive.",
+          "say": "The classic one, kemu, can pretend to be a whole PC: USB, sound cards, even a floppy drive."
+        },
+        {
+          "text": "Each of those devices is code that a hostile guest can poke at."
+        }
+      ]
+    },
+    {
+      "id": "venom",
+      "lines": [
+        {
+          "text": "In 2015, a bug in QEMU's floppy drive, called VENOM, let code in a virtual machine break out onto the host.",
+          "say": "In 2015, a bug in kemu's floppy drive, called venom, let code in a virtual machine break out onto the host."
+        },
+        {
+          "text": "Almost none of those machines ever used a floppy."
+        }
+      ]
+    },
+    {
+      "id": "fc",
+      "lines": [
+        {
+          "text": "Firecracker takes the opposite road. Amazon wrote it in Rust to run AWS Lambda, and open-sourced it in 2018.",
+          "say": "Firecracker takes the opposite road. Amazon wrote it in Rust to run A W S Lambda, and open-sourced it in 2018."
+        },
+        {
+          "text": "It pretends a handful of devices: a disk, a network card, a console, and little else."
+        }
+      ]
+    },
+    {
+      "id": "micro",
+      "lines": [
+        {
+          "text": "Less to pretend is less to attack, and less to wait for: Firecracker can start a machine's code in about 125 milliseconds, with under five megabytes of overhead.",
+          "say": "Less to pretend is less to attack, and less to wait for: Firecracker can start a machine's code in about a hundred and twenty-five milliseconds, with under five megabytes of overhead."
+        },
+        {
+          "text": "That is a microVM."
+        }
+      ]
+    },
+    {
+      "id": "snapshot",
+      "lines": [
+        {
+          "text": "It can also freeze a running machine to disk, and bring it back in milliseconds."
+        },
+        {
+          "text": "Spunto Sandbox is built on it."
+        }
+      ]
+    }
+  ]
+}

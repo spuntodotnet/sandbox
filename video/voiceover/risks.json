@@ -1,0 +1,82 @@
+{
+  "provider": "elevenlabs",
+  "voice": "en_US-ryan-high",
+  "lengthScale": 0.95,
+  "elevenlabs": {
+    "voiceId": "JBFqnCBsd6RMkjVDRZzb",
+    "model": "eleven_v4",
+    "language": "en",
+    "settings": {
+      "stability": 0.45,
+      "similarity_boost": 0.8,
+      "style": 0.25
+    },
+    "voiceName": "George"
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "lines": [
+        {
+          "text": "Walls lower the risk. They don't remove it. Here is what remains."
+        }
+      ]
+    },
+    {
+      "id": "bugs",
+      "lines": [
+        {
+          "text": "Bugs. KVM and Firecracker are code too, and flaws are found in them now and then.",
+          "say": "Bugs. K V M and Firecracker are code too, and flaws are found in them now and then."
+        },
+        {
+          "text": "The answer is boring, and it works: keep the host's kernel and Firecracker up to date."
+        }
+      ]
+    },
+    {
+      "id": "cpu",
+      "lines": [
+        {
+          "text": "The processor itself. In 2018, attacks like Spectre showed that a program can guess secrets from how fast the processor answers."
+        },
+        {
+          "text": "Kernel and processor updates block the known ones. The host must have them."
+        }
+      ]
+    },
+    {
+      "id": "inside",
+      "lines": [
+        {
+          "text": "The biggest risk is in the box. It reaches the internet."
+        },
+        {
+          "text": "Any secret you put in it, a token, a password, can be sent away by the code you run, or by an agent tricked into doing it."
+        }
+      ]
+    },
+    {
+      "id": "abuse",
+      "lines": [
+        {
+          "text": "A box can also be turned against others: mining, spam, attacks."
+        },
+        {
+          "text": "That is why its bandwidth is capped, and outgoing mail on port twenty-five is blocked."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "lines": [
+        {
+          "text": "So a sandbox doesn't make code trustworthy. It decides how far the damage can go."
+        },
+        {
+          "text": "Give each box only what it needs, and keep the walls up to date."
+        }
+      ]
+    }
+  ]
+}

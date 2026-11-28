@@ -1,0 +1,113 @@
+---
+title: From zero
+description: What a kernel is, what a virtual machine is, what Firecracker is, why a sandbox holds and what can still go wrong — in five short videos, for those who start from nothing.
+---
+
+You don't need to know any of this to [run a sandbox](/docs/quickstart). But if words like
+*kernel*, *VM* or *Firecracker* go by without meaning much, these five chapters explain them from
+the start: about a minute each, with the drawings that go with the words. Each video has its
+written version below it.
+
+## 1. What a kernel is
+
+<ChapterVideo id="1-kernel" title="Chapter 1: What a kernel is" />
+
+A computer runs many programs at once, and none of them touches the hardware itself. Between them
+and the hardware sits one program that has every right: the **kernel**. It hands out memory, time
+on the processor, the disk and the network.
+
+When a program wants to open a file or send something over the network, it asks the kernel: that
+request is a **system call** (`openat`, `read`, `sendto`…). Linux has a few hundred of them. The
+kernel checks each one: this program may read that file, not this one, and it may never read
+another program's memory.
+
+**Linux** is the kernel of most servers on the internet, and of every Android phone. One idea to
+keep from this chapter: *whoever controls the kernel controls the machine*.
+
+## 2. Containers and virtual machines
+
+<ChapterVideo id="2-boxes" title="Chapter 2: Containers and virtual machines" />
+
+To run code you don't trust — a script found on the internet, code an AI agent just wrote — you
+put it in a box. There are two kinds.
+
+- A **container** (Docker, for instance) is a set of ordinary programs to which the kernel shows
+  their own files, their own processes and their own network. It looks like a machine of its own,
+  but every container on the machine talks to **the same kernel**. A single bug in any of its system
+  calls, and the code is out of its box: on the host, and in every other container.
+- A **virtual machine** (a VM) gets **a kernel of its own**, running on pretend hardware: a
+  processor, memory, a disk and a network card. Today's processors run it at almost full speed
+  (Intel VT-x, AMD-V); in Linux, the part that drives them is called
+  [**KVM**](https://linux-kvm.org). The code in the box can break its own kernel: the host's stays
+  out of reach.
+
+A container is a room in a shared house. A virtual machine is a house of its own.
+
+## 3. Firecracker
+
+<ChapterVideo id="3-firecracker" title="Chapter 3: Firecracker" />
+
+KVM runs a VM's processor and memory. Everything else — its disk, its network card — is pretended by
+an ordinary program on the host: the **virtual machine monitor** (VMM). And every device it pretends
+is code that the guest, hostile or not, can talk to.
+
+The classic VMM, [QEMU](https://www.qemu.org), can pretend a whole PC: USB, sound cards, even a
+floppy drive. In 2015, a bug in that floppy drive —
+[VENOM, CVE-2015-3456](https://nvd.nist.gov/vuln/detail/CVE-2015-3456) — let code in a VM break out
+onto the host, on machines that had never used a floppy.
+
+[**Firecracker**](https://firecracker-microvm.github.io) takes the opposite road. Amazon wrote it
+in Rust to run AWS Lambda and opened its source in 2018. It pretends a handful of devices — a disk, a
+network card, a serial console, little else — and so has less to attack and less to wait for: its
+[specification](https://github.com/firecracker-microvm/firecracker/blob/main/SPECIFICATION.md) promises
+user code started in about 125 ms and under 5 MiB of memory overhead per VM. That is a **microVM**.
+
+It can also write a running VM's memory to disk and bring it back in milliseconds, every process
+where it was. That is what Spunto Sandbox is built on — the [pause and the fork](/docs/concepts/snapshots-and-forks),
+and [why Firecracker rather than QEMU](/docs/design#-2-why-firecracker).
+
+## 4. Why a sandbox holds
+
+<ChapterVideo id="4-walls" title="Chapter 4: Why a sandbox holds" />
+
+Spunto Sandbox starts from one rule: **the code in a box is not trusted**. It may be *root* — the
+user with every right — inside its box; outside, that changes nothing. So the code is behind five
+walls, one inside the other:
+
+1. **The virtual machine**: its own kernel, its own disks, KVM between it and the hardware.
+2. **Firecracker**: few devices, and a filter (seccomp) that lets it make only the system calls it needs.
+3. **The jailer**: each Firecracker process runs locked in a folder of its own (a `chroot`), as a
+   user of its own, with no special right (no capability). Someone who got out of the VM would land
+   in an empty cell.
+4. **Limits**: each box has its share of processor, memory and network; one box cannot starve
+   the others ([Resources](/docs/concepts/resources)).
+5. **The network**: a box reaches the internet, but not the host, not the other boxes, not the
+   local network, and not a cloud's metadata server (the one that hands out the machine's keys).
+   Nothing reaches a box unless the host opens the way.
+
+The details, rule by rule: [Networking and isolation](/docs/concepts/isolation).
+
+## 5. What can still go wrong
+
+<ChapterVideo id="5-risks" title="Chapter 5: What can still go wrong" />
+
+Walls lower the risk; they don't remove it.
+
+- **Bugs.** KVM and Firecracker are code too, and flaws are found in them now and then. Keep the
+  host's kernel and Firecracker [up to date](/docs/operations).
+- **The processor itself.** In 2018, [Spectre and Meltdown](https://meltdownattack.com) showed
+  that a program can guess secrets from how fast the processor answers. Kernel and processor
+  (microcode) updates block the known attacks: the host must have them.
+- **What is in the box.** A box reaches the internet: any secret you put in it — a token, a
+  password — can be sent away by the code you run, or by an agent that a web page tricked into it
+  (a *prompt injection*). Give a box only the secrets its task needs.
+- **A box turned against others**: mining, spam, attacks. A box's bandwidth is capped and shared
+  fairly, and outgoing mail on port 25 is blocked.
+
+A sandbox doesn't make code trustworthy: it decides how far the damage can go. Found a way through
+a wall? [Tell us privately](https://github.com/spuntodotnet/sandbox/security/policy).
+
+---
+
+These videos are made in code, with [Remotion](https://www.remotion.dev): `video/` in the
+[repository](https://github.com/spuntodotnet/sandbox/tree/main/video).

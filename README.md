@@ -78,6 +78,7 @@ Not macOS, not ARM — not yet.
 | `guest/` | `sbx-agent`, the static Go binary in every box (exec, terminals, files, ports) — [protocol](guest/protocol.md) |
 | `kernel/` | the guest kernel's config and its reproducible build |
 | `docs/` | the documentation site (fumadocs, static export): `cd docs && npm ci && npm run dev` |
+| `video/` | the videos of [From zero](https://sandbox.spunto.net/docs/from-zero), in Remotion: `cd video && npm ci && npm run dev` |
 | `install.sh` | the installer |
 
 ```sh

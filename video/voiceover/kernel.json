@@ -1,0 +1,70 @@
+{
+  "provider": "elevenlabs",
+  "voice": "en_US-ryan-high",
+  "lengthScale": 0.95,
+  "elevenlabs": {
+    "voiceId": "JBFqnCBsd6RMkjVDRZzb",
+    "model": "eleven_v4",
+    "language": "en",
+    "settings": {
+      "stability": 0.45,
+      "similarity_boost": 0.8,
+      "style": 0.25
+    },
+    "voiceName": "George"
+  },
+  "scenes": [
+    {
+      "id": "programs",
+      "lines": [
+        {
+          "text": "Your computer runs dozens of programs at once: a browser, a music player, a terminal."
+        },
+        {
+          "text": "Not one of them touches the hardware directly."
+        }
+      ]
+    },
+    {
+      "id": "kernel",
+      "lines": [
+        {
+          "text": "Between them and the hardware sits one program with every right: the kernel."
+        },
+        {
+          "text": "It hands out the memory, the processor's time, the disk and the network."
+        }
+      ]
+    },
+    {
+      "id": "syscalls",
+      "lines": [
+        {
+          "text": "When a program wants to open a file or send something over the network, it asks the kernel."
+        },
+        {
+          "text": "That request is a system call. Linux has a few hundred of them."
+        }
+      ]
+    },
+    {
+      "id": "referee",
+      "lines": [
+        {
+          "text": "The kernel checks every request. This program may read that file, not this one; it may never read another program's memory."
+        }
+      ]
+    },
+    {
+      "id": "linux",
+      "lines": [
+        {
+          "text": "Linux is the kernel of most servers on the internet, and of every Android phone."
+        },
+        {
+          "text": "Keep one idea from this: whoever controls the kernel controls the machine."
+        }
+      ]
+    }
+  ]
+}

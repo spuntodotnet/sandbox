@@ -1,0 +1,82 @@
+{
+  "provider": "elevenlabs",
+  "voice": "en_US-ryan-high",
+  "lengthScale": 0.95,
+  "elevenlabs": {
+    "voiceId": "JBFqnCBsd6RMkjVDRZzb",
+    "model": "eleven_v4",
+    "language": "en",
+    "settings": {
+      "stability": 0.45,
+      "similarity_boost": 0.8,
+      "style": 0.25
+    },
+    "voiceName": "George"
+  },
+  "scenes": [
+    {
+      "id": "untrusted",
+      "lines": [
+        {
+          "text": "Now say you want to run code you don't trust: a script from the internet, or code an AI agent just wrote."
+        },
+        {
+          "text": "You want to put it in a box."
+        }
+      ]
+    },
+    {
+      "id": "container",
+      "lines": [
+        {
+          "text": "The first kind of box is a container, like Docker."
+        },
+        {
+          "text": "The kernel shows the code its own files, its own processes, its own network. It looks like a machine of its own."
+        }
+      ]
+    },
+    {
+      "id": "shared",
+      "lines": [
+        {
+          "text": "But every container on the machine talks to the same kernel."
+        },
+        {
+          "text": "One bug in any of its system calls, and the code is out of its box: in the host, and in every other container."
+        }
+      ]
+    },
+    {
+      "id": "vm",
+      "lines": [
+        {
+          "text": "The second kind of box is a virtual machine."
+        },
+        {
+          "text": "The code gets a kernel of its own, running on pretend hardware: a processor, memory, a disk and a network card."
+        }
+      ]
+    },
+    {
+      "id": "kvm",
+      "lines": [
+        {
+          "text": "Today's processors run this at almost full speed. In Linux, the part that drives them is called KVM.",
+          "say": "Today's processors run this at almost full speed. In Linux, the part that drives them is called K V M."
+        },
+        {
+          "text": "The code in the box can wreck its own kernel. The real one stays out of reach."
+        }
+      ]
+    },
+    {
+      "id": "house",
+      "lines": [
+        {
+          "text": "A container is a room in a shared house. A virtual machine is a house of its own."
+        }
+      ]
+    }
+  ]
+}

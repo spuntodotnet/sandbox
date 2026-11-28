@@ -1,0 +1,833 @@
+{
+  "voice": "JBFqnCBsd6RMkjVDRZzb",
+  "provider": "elevenlabs",
+  "scenes": [
+    {
+      "id": "untrusted",
+      "lines": [
+        {
+          "text": "Now say you want to run code you don't trust: a script from the internet, or code an AI agent just wrote.",
+          "file": "voice/boxes/untrusted-0.mp3",
+          "duration": 7.079,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.32
+            },
+            {
+              "start": 0.44,
+              "end": 0.56
+            },
+            {
+              "start": 0.72,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.04
+            },
+            {
+              "start": 1.08,
+              "end": 1.12
+            },
+            {
+              "start": 1.2,
+              "end": 1.36
+            },
+            {
+              "start": 1.44,
+              "end": 1.76
+            },
+            {
+              "start": 1.84,
+              "end": 1.92
+            },
+            {
+              "start": 2.0,
+              "end": 2.24
+            },
+            {
+              "start": 2.48,
+              "end": 3.12
+            },
+            {
+              "start": 3.2,
+              "end": 3.28
+            },
+            {
+              "start": 3.44,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 3.76
+            },
+            {
+              "start": 3.8,
+              "end": 3.84
+            },
+            {
+              "start": 3.92,
+              "end": 4.64
+            },
+            {
+              "start": 4.76,
+              "end": 4.88
+            },
+            {
+              "start": 5.04,
+              "end": 5.28
+            },
+            {
+              "start": 5.36,
+              "end": 5.44
+            },
+            {
+              "start": 5.52,
+              "end": 5.84
+            },
+            {
+              "start": 6.04,
+              "end": 6.24
+            },
+            {
+              "start": 6.36,
+              "end": 6.48
+            },
+            {
+              "start": 6.52,
+              "end": 7.12
+            }
+          ]
+        },
+        {
+          "text": "You want to put it in a box.",
+          "file": "voice/boxes/untrusted-1.mp3",
+          "duration": 1.881,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.32
+            },
+            {
+              "start": 0.4,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 0.64
+            },
+            {
+              "start": 0.72,
+              "end": 0.8
+            },
+            {
+              "start": 0.88,
+              "end": 0.96
+            },
+            {
+              "start": 1.0,
+              "end": 1.04
+            },
+            {
+              "start": 1.12,
+              "end": 1.92
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "container",
+      "lines": [
+        {
+          "text": "The first kind of box is a container, like Docker.",
+          "file": "voice/boxes/container-0.mp3",
+          "duration": 3.474,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 0.72
+            },
+            {
+              "start": 0.8,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.28
+            },
+            {
+              "start": 1.36,
+              "end": 1.44
+            },
+            {
+              "start": 1.48,
+              "end": 1.52
+            },
+            {
+              "start": 1.84,
+              "end": 2.48
+            },
+            {
+              "start": 2.56,
+              "end": 2.72
+            },
+            {
+              "start": 2.8,
+              "end": 3.52
+            }
+          ]
+        },
+        {
+          "text": "The kernel shows the code its own files, its own processes, its own network. It looks like a machine of its own.",
+          "file": "voice/boxes/container-1.mp3",
+          "duration": 7.706,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.04
+            },
+            {
+              "start": 1.12,
+              "end": 1.36
+            },
+            {
+              "start": 1.48,
+              "end": 1.6
+            },
+            {
+              "start": 1.68,
+              "end": 1.84
+            },
+            {
+              "start": 2.0,
+              "end": 2.72
+            },
+            {
+              "start": 2.8,
+              "end": 2.88
+            },
+            {
+              "start": 2.96,
+              "end": 3.04
+            },
+            {
+              "start": 3.12,
+              "end": 4.08
+            },
+            {
+              "start": 4.2,
+              "end": 4.32
+            },
+            {
+              "start": 4.4,
+              "end": 4.56
+            },
+            {
+              "start": 4.64,
+              "end": 5.44
+            },
+            {
+              "start": 5.68,
+              "end": 5.84
+            },
+            {
+              "start": 5.96,
+              "end": 6.08
+            },
+            {
+              "start": 6.16,
+              "end": 6.24
+            },
+            {
+              "start": 6.28,
+              "end": 6.32
+            },
+            {
+              "start": 6.56,
+              "end": 6.8
+            },
+            {
+              "start": 6.84,
+              "end": 6.88
+            },
+            {
+              "start": 7.0,
+              "end": 7.12
+            },
+            {
+              "start": 7.2,
+              "end": 7.76
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shared",
+      "lines": [
+        {
+          "text": "But every container on the machine talks to the same kernel.",
+          "file": "voice/boxes/shared-0.mp3",
+          "duration": 3.788,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.24
+            },
+            {
+              "start": 0.32,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 1.04
+            },
+            {
+              "start": 1.12,
+              "end": 1.2
+            },
+            {
+              "start": 1.24,
+              "end": 1.28
+            },
+            {
+              "start": 1.6,
+              "end": 1.92
+            },
+            {
+              "start": 2.08,
+              "end": 2.32
+            },
+            {
+              "start": 2.36,
+              "end": 2.4
+            },
+            {
+              "start": 2.48,
+              "end": 2.64
+            },
+            {
+              "start": 2.8,
+              "end": 2.96
+            },
+            {
+              "start": 3.04,
+              "end": 3.84
+            }
+          ]
+        },
+        {
+          "text": "One bug in any of its system calls, and the code is out of its box: in the host, and in every other container.",
+          "file": "voice/boxes/shared-1.mp3",
+          "duration": 7.549,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.32
+            },
+            {
+              "start": 0.4,
+              "end": 0.64
+            },
+            {
+              "start": 0.72,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.2
+            },
+            {
+              "start": 1.24,
+              "end": 1.28
+            },
+            {
+              "start": 1.36,
+              "end": 1.44
+            },
+            {
+              "start": 1.52,
+              "end": 1.84
+            },
+            {
+              "start": 1.92,
+              "end": 2.48
+            },
+            {
+              "start": 2.52,
+              "end": 2.56
+            },
+            {
+              "start": 2.64,
+              "end": 2.72
+            },
+            {
+              "start": 2.8,
+              "end": 3.04
+            },
+            {
+              "start": 3.12,
+              "end": 3.2
+            },
+            {
+              "start": 3.36,
+              "end": 3.52
+            },
+            {
+              "start": 3.56,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 3.76
+            },
+            {
+              "start": 3.84,
+              "end": 4.64
+            },
+            {
+              "start": 4.72,
+              "end": 4.8
+            },
+            {
+              "start": 4.84,
+              "end": 4.88
+            },
+            {
+              "start": 4.96,
+              "end": 5.52
+            },
+            {
+              "start": 5.64,
+              "end": 5.76
+            },
+            {
+              "start": 5.84,
+              "end": 6.0
+            },
+            {
+              "start": 6.08,
+              "end": 6.32
+            },
+            {
+              "start": 6.48,
+              "end": 6.64
+            },
+            {
+              "start": 6.72,
+              "end": 7.6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vm",
+      "lines": [
+        {
+          "text": "The second kind of box is a virtual machine.",
+          "file": "voice/boxes/vm-0.mp3",
+          "duration": 3.082,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 0.8
+            },
+            {
+              "start": 0.88,
+              "end": 0.96
+            },
+            {
+              "start": 1.04,
+              "end": 1.36
+            },
+            {
+              "start": 1.52,
+              "end": 1.6
+            },
+            {
+              "start": 1.68,
+              "end": 1.76
+            },
+            {
+              "start": 1.84,
+              "end": 2.24
+            },
+            {
+              "start": 2.32,
+              "end": 3.12
+            }
+          ]
+        },
+        {
+          "text": "The code gets a kernel of its own, running on pretend hardware: a processor, memory, a disk and a network card.",
+          "file": "voice/boxes/vm-1.mp3",
+          "duration": 7.889,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 0.72
+            },
+            {
+              "start": 0.8,
+              "end": 0.88
+            },
+            {
+              "start": 1.04,
+              "end": 1.2
+            },
+            {
+              "start": 1.28,
+              "end": 1.36
+            },
+            {
+              "start": 1.44,
+              "end": 1.52
+            },
+            {
+              "start": 1.6,
+              "end": 2.16
+            },
+            {
+              "start": 2.32,
+              "end": 2.48
+            },
+            {
+              "start": 2.56,
+              "end": 2.64
+            },
+            {
+              "start": 2.72,
+              "end": 3.2
+            },
+            {
+              "start": 3.48,
+              "end": 4.24
+            },
+            {
+              "start": 4.28,
+              "end": 4.32
+            },
+            {
+              "start": 4.4,
+              "end": 5.2
+            },
+            {
+              "start": 5.28,
+              "end": 5.92
+            },
+            {
+              "start": 5.96,
+              "end": 6.0
+            },
+            {
+              "start": 6.08,
+              "end": 6.48
+            },
+            {
+              "start": 6.64,
+              "end": 6.72
+            },
+            {
+              "start": 6.76,
+              "end": 6.8
+            },
+            {
+              "start": 6.88,
+              "end": 7.2
+            },
+            {
+              "start": 7.28,
+              "end": 7.84
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kvm",
+      "lines": [
+        {
+          "text": "Today's processors run this at almost full speed. In Linux, the part that drives them is called KVM.",
+          "file": "voice/boxes/kvm-0.mp3",
+          "duration": 7.236,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "start": 0.48,
+              "end": 1.04
+            },
+            {
+              "start": 1.2,
+              "end": 1.36
+            },
+            {
+              "start": 1.44,
+              "end": 1.6
+            },
+            {
+              "start": 1.68,
+              "end": 1.76
+            },
+            {
+              "start": 1.84,
+              "end": 2.24
+            },
+            {
+              "start": 2.32,
+              "end": 2.56
+            },
+            {
+              "start": 2.64,
+              "end": 3.4
+            },
+            {
+              "start": 3.68,
+              "end": 3.76
+            },
+            {
+              "start": 3.84,
+              "end": 4.4
+            },
+            {
+              "start": 4.48,
+              "end": 4.56
+            },
+            {
+              "start": 4.68,
+              "end": 4.8
+            },
+            {
+              "start": 4.88,
+              "end": 4.96
+            },
+            {
+              "start": 5.04,
+              "end": 5.36
+            },
+            {
+              "start": 5.48,
+              "end": 5.6
+            },
+            {
+              "start": 5.68,
+              "end": 5.76
+            },
+            {
+              "start": 5.84,
+              "end": 6.08
+            },
+            {
+              "start": 6.24,
+              "end": 7.28
+            }
+          ]
+        },
+        {
+          "text": "The code in the box can wreck its own kernel. The real one stays out of reach.",
+          "file": "voice/boxes/kvm-1.mp3",
+          "duration": 5.251,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.48
+            },
+            {
+              "start": 0.52,
+              "end": 0.56
+            },
+            {
+              "start": 0.6,
+              "end": 0.64
+            },
+            {
+              "start": 0.72,
+              "end": 1.12
+            },
+            {
+              "start": 1.2,
+              "end": 1.28
+            },
+            {
+              "start": 1.36,
+              "end": 1.6
+            },
+            {
+              "start": 1.72,
+              "end": 1.84
+            },
+            {
+              "start": 1.92,
+              "end": 2.08
+            },
+            {
+              "start": 2.16,
+              "end": 2.88
+            },
+            {
+              "start": 3.12,
+              "end": 3.2
+            },
+            {
+              "start": 3.28,
+              "end": 3.52
+            },
+            {
+              "start": 3.6,
+              "end": 3.84
+            },
+            {
+              "start": 3.92,
+              "end": 4.16
+            },
+            {
+              "start": 4.24,
+              "end": 4.4
+            },
+            {
+              "start": 4.44,
+              "end": 4.48
+            },
+            {
+              "start": 4.56,
+              "end": 5.28
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "house",
+      "lines": [
+        {
+          "text": "A container is a room in a shared house. A virtual machine is a house of its own.",
+          "file": "voice/boxes/house-0.mp3",
+          "duration": 5.799,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.48,
+              "end": 0.8
+            },
+            {
+              "start": 0.88,
+              "end": 0.96
+            },
+            {
+              "start": 1.04,
+              "end": 1.12
+            },
+            {
+              "start": 1.28,
+              "end": 1.44
+            },
+            {
+              "start": 1.52,
+              "end": 1.6
+            },
+            {
+              "start": 1.68,
+              "end": 1.76
+            },
+            {
+              "start": 1.92,
+              "end": 2.08
+            },
+            {
+              "start": 2.16,
+              "end": 3.04
+            },
+            {
+              "start": 3.12,
+              "end": 3.2
+            },
+            {
+              "start": 3.28,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 4.32
+            },
+            {
+              "start": 4.4,
+              "end": 4.48
+            },
+            {
+              "start": 4.52,
+              "end": 4.56
+            },
+            {
+              "start": 4.64,
+              "end": 4.88
+            },
+            {
+              "start": 4.92,
+              "end": 4.96
+            },
+            {
+              "start": 5.08,
+              "end": 5.2
+            },
+            {
+              "start": 5.28,
+              "end": 5.84
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
