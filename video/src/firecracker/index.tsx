@@ -234,6 +234,14 @@ const Count: React.FC<{ at: number; to: number; unit: string; prefix?: string; l
 
 const Micro: SceneComponent = ({ lines }) => (
   <>
+    <At x={200} y={330} w={1520}>
+      <Appear at={0} out={cue(lines, "125") - 8}>
+        <Serif text="Less to pretend: *less to attack*," size={84} />
+        <Appear at={cue(lines, "wait")} style={{ marginTop: 14 }}>
+          <Serif text="and *less to wait for*." size={84} />
+        </Appear>
+      </Appear>
+    </At>
     <At x={200} y={210} w={760}>
       <Count at={cue(lines, "125")} to={125} unit="ms" prefix="~" label="to start a machine's code" />
     </At>

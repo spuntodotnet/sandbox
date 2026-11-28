@@ -1,16 +1,17 @@
 {
-  "provider": "piper",
+  "provider": "elevenlabs",
   "voice": "en_US-ryan-high",
   "lengthScale": 0.95,
   "elevenlabs": {
-    "voiceId": "TBD",
+    "voiceId": "JBFqnCBsd6RMkjVDRZzb",
     "model": "eleven_v4",
     "language": "en",
     "settings": {
       "stability": 0.45,
       "similarity_boost": 0.8,
       "style": 0.25
-    }
+    },
+    "voiceName": "George"
   },
   "scenes": [
     {

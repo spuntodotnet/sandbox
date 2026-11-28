@@ -1,19 +1,155 @@
 {
-  "voice": "en_US-ryan-high",
-  "provider": "piper",
+  "voice": "JBFqnCBsd6RMkjVDRZzb",
+  "provider": "elevenlabs",
   "scenes": [
     {
       "id": "rule",
       "lines": [
         {
           "text": "Spunto Sandbox starts from one rule: the code in a box is not trusted.",
-          "file": "voice/walls/rule-0.wav",
-          "duration": 3.936
+          "file": "voice/walls/rule-0.mp3",
+          "duration": 5.486,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 1.12
+            },
+            {
+              "start": 1.28,
+              "end": 1.6
+            },
+            {
+              "start": 1.68,
+              "end": 1.84
+            },
+            {
+              "start": 1.92,
+              "end": 2.08
+            },
+            {
+              "start": 2.16,
+              "end": 2.96
+            },
+            {
+              "start": 3.04,
+              "end": 3.12
+            },
+            {
+              "start": 3.2,
+              "end": 3.44
+            },
+            {
+              "start": 3.48,
+              "end": 3.52
+            },
+            {
+              "start": 3.56,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 4.16
+            },
+            {
+              "start": 4.24,
+              "end": 4.4
+            },
+            {
+              "start": 4.48,
+              "end": 4.72
+            },
+            {
+              "start": 5.0,
+              "end": 5.52
+            }
+          ]
         },
         {
           "text": "It may be root, the all-powerful user, inside its box. Outside, that changes nothing. So the sandbox stacks walls.",
-          "file": "voice/walls/rule-1.wav",
-          "duration": 7.338
+          "file": "voice/walls/rule-1.mp3",
+          "duration": 9.874,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.4
+            },
+            {
+              "start": 0.48,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 1.28
+            },
+            {
+              "start": 1.36,
+              "end": 1.44
+            },
+            {
+              "start": 1.52,
+              "end": 2.32
+            },
+            {
+              "start": 2.48,
+              "end": 3.12
+            },
+            {
+              "start": 3.36,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 3.76
+            },
+            {
+              "start": 3.84,
+              "end": 4.56
+            },
+            {
+              "start": 4.8,
+              "end": 5.6
+            },
+            {
+              "start": 5.68,
+              "end": 5.84
+            },
+            {
+              "start": 5.92,
+              "end": 6.24
+            },
+            {
+              "start": 6.4,
+              "end": 7.28
+            },
+            {
+              "start": 7.36,
+              "end": 7.6
+            },
+            {
+              "start": 7.76,
+              "end": 7.84
+            },
+            {
+              "start": 7.92,
+              "end": 8.48
+            },
+            {
+              "start": 8.64,
+              "end": 9.04
+            },
+            {
+              "start": 9.12,
+              "end": 9.92
+            }
+          ]
         }
       ]
     },
@@ -22,8 +158,90 @@
       "lines": [
         {
           "text": "The first wall is the virtual machine: its own kernel, its own disks, and KVM between it and the hardware.",
-          "file": "voice/walls/wall-vm-0.wav",
-          "duration": 6.026
+          "file": "voice/walls/wall-vm-0.mp3",
+          "duration": 7.628,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.04
+            },
+            {
+              "start": 1.08,
+              "end": 1.12
+            },
+            {
+              "start": 1.2,
+              "end": 1.6
+            },
+            {
+              "start": 1.68,
+              "end": 2.56
+            },
+            {
+              "start": 2.68,
+              "end": 2.8
+            },
+            {
+              "start": 2.88,
+              "end": 2.96
+            },
+            {
+              "start": 3.04,
+              "end": 3.68
+            },
+            {
+              "start": 3.76,
+              "end": 3.84
+            },
+            {
+              "start": 3.92,
+              "end": 4.0
+            },
+            {
+              "start": 4.16,
+              "end": 4.8
+            },
+            {
+              "start": 4.92,
+              "end": 5.04
+            },
+            {
+              "start": 5.2,
+              "end": 5.76
+            },
+            {
+              "start": 5.84,
+              "end": 6.16
+            },
+            {
+              "start": 6.24,
+              "end": 6.48
+            },
+            {
+              "start": 6.56,
+              "end": 6.64
+            },
+            {
+              "start": 6.72,
+              "end": 6.76
+            },
+            {
+              "start": 6.8,
+              "end": 7.68
+            }
+          ]
         }
       ]
     },
@@ -32,8 +250,86 @@
       "lines": [
         {
           "text": "The second is Firecracker: few devices, and a filter that lets it make only the system calls it needs.",
-          "file": "voice/walls/wall-fc-0.wav",
-          "duration": 5.492
+          "file": "voice/walls/wall-fc-0.mp3",
+          "duration": 7.158,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.64
+            },
+            {
+              "start": 0.72,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 2.16
+            },
+            {
+              "start": 2.32,
+              "end": 2.48
+            },
+            {
+              "start": 2.56,
+              "end": 3.44
+            },
+            {
+              "start": 3.52,
+              "end": 3.6
+            },
+            {
+              "start": 3.64,
+              "end": 3.68
+            },
+            {
+              "start": 3.76,
+              "end": 4.16
+            },
+            {
+              "start": 4.24,
+              "end": 4.32
+            },
+            {
+              "start": 4.4,
+              "end": 4.56
+            },
+            {
+              "start": 4.6,
+              "end": 4.64
+            },
+            {
+              "start": 4.72,
+              "end": 4.96
+            },
+            {
+              "start": 5.04,
+              "end": 5.28
+            },
+            {
+              "start": 5.36,
+              "end": 5.44
+            },
+            {
+              "start": 5.52,
+              "end": 5.84
+            },
+            {
+              "start": 5.92,
+              "end": 6.24
+            },
+            {
+              "start": 6.28,
+              "end": 6.32
+            },
+            {
+              "start": 6.4,
+              "end": 7.2
+            }
+          ]
         }
       ]
     },
@@ -42,13 +338,169 @@
       "lines": [
         {
           "text": "The third is the jailer. Each Firecracker runs locked in a folder of its own, as a user of its own, with no special right.",
-          "file": "voice/walls/wall-jail-0.wav",
-          "duration": 6.478
+          "file": "voice/walls/wall-jail-0.mp3",
+          "duration": 8.359,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.64
+            },
+            {
+              "start": 0.8,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.04
+            },
+            {
+              "start": 1.12,
+              "end": 1.6
+            },
+            {
+              "start": 2.16,
+              "end": 2.4
+            },
+            {
+              "start": 2.48,
+              "end": 3.12
+            },
+            {
+              "start": 3.2,
+              "end": 3.52
+            },
+            {
+              "start": 3.6,
+              "end": 3.84
+            },
+            {
+              "start": 3.92,
+              "end": 4.0
+            },
+            {
+              "start": 4.04,
+              "end": 4.08
+            },
+            {
+              "start": 4.16,
+              "end": 4.48
+            },
+            {
+              "start": 4.52,
+              "end": 4.56
+            },
+            {
+              "start": 4.68,
+              "end": 4.8
+            },
+            {
+              "start": 4.88,
+              "end": 5.36
+            },
+            {
+              "start": 5.44,
+              "end": 5.52
+            },
+            {
+              "start": 5.56,
+              "end": 5.6
+            },
+            {
+              "start": 5.76,
+              "end": 6.0
+            },
+            {
+              "start": 6.08,
+              "end": 6.12
+            },
+            {
+              "start": 6.16,
+              "end": 6.32
+            },
+            {
+              "start": 6.4,
+              "end": 6.88
+            },
+            {
+              "start": 6.96,
+              "end": 7.04
+            },
+            {
+              "start": 7.12,
+              "end": 7.28
+            },
+            {
+              "start": 7.36,
+              "end": 7.68
+            },
+            {
+              "start": 7.84,
+              "end": 8.4
+            }
+          ]
         },
         {
           "text": "Someone who broke out of the VM would land in an empty cell.",
-          "file": "voice/walls/wall-jail-1.wav",
-          "duration": 2.984
+          "file": "voice/walls/wall-jail-1.mp3",
+          "duration": 3.971,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 0.64
+            },
+            {
+              "start": 0.68,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.12
+            },
+            {
+              "start": 1.2,
+              "end": 1.28
+            },
+            {
+              "start": 1.32,
+              "end": 1.36
+            },
+            {
+              "start": 1.44,
+              "end": 2.0
+            },
+            {
+              "start": 2.08,
+              "end": 2.16
+            },
+            {
+              "start": 2.24,
+              "end": 2.56
+            },
+            {
+              "start": 2.64,
+              "end": 2.72
+            },
+            {
+              "start": 2.8,
+              "end": 2.88
+            },
+            {
+              "start": 3.08,
+              "end": 3.28
+            },
+            {
+              "start": 3.36,
+              "end": 4.0
+            }
+          ]
         }
       ]
     },
@@ -57,8 +509,82 @@
       "lines": [
         {
           "text": "Fourth, limits: each box gets its share of processor, memory and network. One box cannot starve the others.",
-          "file": "voice/walls/wall-limits-0.wav",
-          "duration": 6.525
+          "file": "voice/walls/wall-limits-0.mp3",
+          "duration": 8.516,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 2.0
+            },
+            {
+              "start": 2.12,
+              "end": 2.24
+            },
+            {
+              "start": 2.32,
+              "end": 2.64
+            },
+            {
+              "start": 2.72,
+              "end": 2.88
+            },
+            {
+              "start": 2.96,
+              "end": 3.12
+            },
+            {
+              "start": 3.28,
+              "end": 3.44
+            },
+            {
+              "start": 3.52,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 4.48
+            },
+            {
+              "start": 4.68,
+              "end": 4.88
+            },
+            {
+              "start": 5.04,
+              "end": 5.2
+            },
+            {
+              "start": 5.48,
+              "end": 6.24
+            },
+            {
+              "start": 6.32,
+              "end": 6.48
+            },
+            {
+              "start": 6.56,
+              "end": 6.88
+            },
+            {
+              "start": 6.96,
+              "end": 7.28
+            },
+            {
+              "start": 7.36,
+              "end": 7.68
+            },
+            {
+              "start": 7.72,
+              "end": 7.76
+            },
+            {
+              "start": 7.84,
+              "end": 8.56
+            }
+          ]
         }
       ]
     },
@@ -67,13 +593,185 @@
       "lines": [
         {
           "text": "Last, the network. A box reaches the internet, but not the host, not the other boxes, not your local network, and not the cloud's metadata server, which hands out its keys.",
-          "file": "voice/walls/wall-net-0.wav",
-          "duration": 8.916
+          "file": "voice/walls/wall-net-0.mp3",
+          "duration": 11.886,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.48
+            },
+            {
+              "start": 0.8,
+              "end": 0.933
+            },
+            {
+              "start": 0.96,
+              "end": 1.52
+            },
+            {
+              "start": 1.6,
+              "end": 2.08
+            },
+            {
+              "start": 2.24,
+              "end": 2.56
+            },
+            {
+              "start": 2.64,
+              "end": 2.96
+            },
+            {
+              "start": 3.04,
+              "end": 3.12
+            },
+            {
+              "start": 3.36,
+              "end": 3.84
+            },
+            {
+              "start": 3.92,
+              "end": 4.0
+            },
+            {
+              "start": 4.08,
+              "end": 4.24
+            },
+            {
+              "start": 4.28,
+              "end": 4.32
+            },
+            {
+              "start": 4.4,
+              "end": 5.2
+            },
+            {
+              "start": 5.28,
+              "end": 5.44
+            },
+            {
+              "start": 5.48,
+              "end": 5.52
+            },
+            {
+              "start": 5.6,
+              "end": 5.76
+            },
+            {
+              "start": 5.84,
+              "end": 6.56
+            },
+            {
+              "start": 6.64,
+              "end": 6.8
+            },
+            {
+              "start": 6.88,
+              "end": 6.96
+            },
+            {
+              "start": 7.12,
+              "end": 7.28
+            },
+            {
+              "start": 7.36,
+              "end": 8.08
+            },
+            {
+              "start": 8.16,
+              "end": 8.24
+            },
+            {
+              "start": 8.32,
+              "end": 8.4
+            },
+            {
+              "start": 8.48,
+              "end": 8.56
+            },
+            {
+              "start": 8.64,
+              "end": 9.04
+            },
+            {
+              "start": 9.32,
+              "end": 9.6
+            },
+            {
+              "start": 9.68,
+              "end": 10.24
+            },
+            {
+              "start": 10.32,
+              "end": 10.4
+            },
+            {
+              "start": 10.48,
+              "end": 10.72
+            },
+            {
+              "start": 10.8,
+              "end": 10.88
+            },
+            {
+              "start": 10.96,
+              "end": 11.12
+            },
+            {
+              "start": 11.2,
+              "end": 11.92
+            }
+          ]
         },
         {
           "text": "And nothing reaches a box unless the host opens the way.",
-          "file": "voice/walls/wall-net-1.wav",
-          "duration": 2.879
+          "file": "voice/walls/wall-net-1.mp3",
+          "duration": 3.866,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.24
+            },
+            {
+              "start": 0.32,
+              "end": 0.64
+            },
+            {
+              "start": 0.72,
+              "end": 1.04
+            },
+            {
+              "start": 1.08,
+              "end": 1.12
+            },
+            {
+              "start": 1.2,
+              "end": 1.68
+            },
+            {
+              "start": 1.76,
+              "end": 2.08
+            },
+            {
+              "start": 2.16,
+              "end": 2.24
+            },
+            {
+              "start": 2.32,
+              "end": 2.72
+            },
+            {
+              "start": 2.8,
+              "end": 3.12
+            },
+            {
+              "start": 3.2,
+              "end": 3.24
+            },
+            {
+              "start": 3.28,
+              "end": 3.92
+            }
+          ]
         }
       ]
     }

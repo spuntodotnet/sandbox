@@ -1,14 +1,64 @@
 {
-  "voice": "en_US-ryan-high",
-  "provider": "piper",
+  "voice": "JBFqnCBsd6RMkjVDRZzb",
+  "provider": "elevenlabs",
   "scenes": [
     {
       "id": "intro",
       "lines": [
         {
           "text": "Walls lower the risk. They don't remove it. Here is what remains.",
-          "file": "voice/risks/intro-0.wav",
-          "duration": 3.46
+          "file": "voice/risks/intro-0.mp3",
+          "duration": 5.068,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.48
+            },
+            {
+              "start": 0.64,
+              "end": 0.88
+            },
+            {
+              "start": 0.92,
+              "end": 0.96
+            },
+            {
+              "start": 1.04,
+              "end": 1.64
+            },
+            {
+              "start": 1.84,
+              "end": 2.0
+            },
+            {
+              "start": 2.08,
+              "end": 2.24
+            },
+            {
+              "start": 2.32,
+              "end": 2.72
+            },
+            {
+              "start": 2.8,
+              "end": 3.24
+            },
+            {
+              "start": 3.52,
+              "end": 3.76
+            },
+            {
+              "start": 3.84,
+              "end": 4.0
+            },
+            {
+              "start": 4.08,
+              "end": 4.16
+            },
+            {
+              "start": 4.24,
+              "end": 5.12
+            }
+          ]
         }
       ]
     },
@@ -17,13 +67,145 @@
       "lines": [
         {
           "text": "Bugs. KVM and Firecracker are code too, and flaws are found in them now and then.",
-          "file": "voice/risks/bugs-0.wav",
-          "duration": 4.748
+          "file": "voice/risks/bugs-0.mp3",
+          "duration": 6.609,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.92
+            },
+            {
+              "start": 1.2,
+              "end": 1.92
+            },
+            {
+              "start": 2.0,
+              "end": 2.08
+            },
+            {
+              "start": 2.16,
+              "end": 2.88
+            },
+            {
+              "start": 2.96,
+              "end": 3.12
+            },
+            {
+              "start": 3.32,
+              "end": 3.52
+            },
+            {
+              "start": 3.6,
+              "end": 4.24
+            },
+            {
+              "start": 4.32,
+              "end": 4.48
+            },
+            {
+              "start": 4.56,
+              "end": 4.96
+            },
+            {
+              "start": 5.04,
+              "end": 5.12
+            },
+            {
+              "start": 5.24,
+              "end": 5.36
+            },
+            {
+              "start": 5.44,
+              "end": 5.52
+            },
+            {
+              "start": 5.6,
+              "end": 5.68
+            },
+            {
+              "start": 5.76,
+              "end": 5.84
+            },
+            {
+              "start": 5.92,
+              "end": 6.0
+            },
+            {
+              "start": 6.08,
+              "end": 6.64
+            }
+          ]
         },
         {
           "text": "The answer is boring, and it works: keep the host's kernel and Firecracker up to date.",
-          "file": "voice/risks/bugs-1.wav",
-          "duration": 4.644
+          "file": "voice/risks/bugs-1.mp3",
+          "duration": 6.034,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 0.8
+            },
+            {
+              "start": 0.88,
+              "end": 1.76
+            },
+            {
+              "start": 1.84,
+              "end": 1.92
+            },
+            {
+              "start": 1.96,
+              "end": 2.0
+            },
+            {
+              "start": 2.08,
+              "end": 2.96
+            },
+            {
+              "start": 3.04,
+              "end": 3.2
+            },
+            {
+              "start": 3.28,
+              "end": 3.36
+            },
+            {
+              "start": 3.52,
+              "end": 3.76
+            },
+            {
+              "start": 3.84,
+              "end": 4.24
+            },
+            {
+              "start": 4.32,
+              "end": 4.4
+            },
+            {
+              "start": 4.48,
+              "end": 5.12
+            },
+            {
+              "start": 5.2,
+              "end": 5.36
+            },
+            {
+              "start": 5.44,
+              "end": 5.52
+            },
+            {
+              "start": 5.68,
+              "end": 6.08
+            }
+          ]
         }
       ]
     },
@@ -32,13 +214,153 @@
       "lines": [
         {
           "text": "The processor itself. In 2018, attacks like Spectre showed that a program can guess secrets from how fast the processor answers.",
-          "file": "voice/risks/cpu-0.wav",
-          "duration": 7.755
+          "file": "voice/risks/cpu-0.mp3",
+          "duration": 9.718,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.8
+            },
+            {
+              "start": 0.88,
+              "end": 1.84
+            },
+            {
+              "start": 2.16,
+              "end": 2.32
+            },
+            {
+              "start": 2.48,
+              "end": 3.44
+            },
+            {
+              "start": 3.68,
+              "end": 3.92
+            },
+            {
+              "start": 4.04,
+              "end": 4.16
+            },
+            {
+              "start": 4.24,
+              "end": 4.88
+            },
+            {
+              "start": 4.96,
+              "end": 5.2
+            },
+            {
+              "start": 5.28,
+              "end": 5.36
+            },
+            {
+              "start": 5.4,
+              "end": 5.44
+            },
+            {
+              "start": 5.52,
+              "end": 6.0
+            },
+            {
+              "start": 6.08,
+              "end": 6.24
+            },
+            {
+              "start": 6.32,
+              "end": 6.56
+            },
+            {
+              "start": 6.64,
+              "end": 7.12
+            },
+            {
+              "start": 7.28,
+              "end": 7.44
+            },
+            {
+              "start": 7.52,
+              "end": 7.68
+            },
+            {
+              "start": 7.84,
+              "end": 8.16
+            },
+            {
+              "start": 8.24,
+              "end": 8.28
+            },
+            {
+              "start": 8.32,
+              "end": 8.8
+            },
+            {
+              "start": 8.88,
+              "end": 9.76
+            }
+          ]
         },
         {
           "text": "Kernel and processor updates block the known ones. The host must have them.",
-          "file": "voice/risks/cpu-1.wav",
-          "duration": 4.005
+          "file": "voice/risks/cpu-1.mp3",
+          "duration": 5.068,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.4
+            },
+            {
+              "start": 0.48,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 1.2
+            },
+            {
+              "start": 1.44,
+              "end": 1.68
+            },
+            {
+              "start": 1.76,
+              "end": 2.08
+            },
+            {
+              "start": 2.16,
+              "end": 2.24
+            },
+            {
+              "start": 2.36,
+              "end": 2.48
+            },
+            {
+              "start": 2.56,
+              "end": 3.16
+            },
+            {
+              "start": 3.36,
+              "end": 3.44
+            },
+            {
+              "start": 3.52,
+              "end": 3.84
+            },
+            {
+              "start": 4.0,
+              "end": 4.32
+            },
+            {
+              "start": 4.4,
+              "end": 4.56
+            },
+            {
+              "start": 4.68,
+              "end": 5.12
+            }
+          ]
         }
       ]
     },
@@ -47,13 +369,169 @@
       "lines": [
         {
           "text": "The biggest risk is in the box. It reaches the internet.",
-          "file": "voice/risks/inside-0.wav",
-          "duration": 2.717
+          "file": "voice/risks/inside-0.mp3",
+          "duration": 3.866,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.24,
+              "end": 0.56
+            },
+            {
+              "start": 0.64,
+              "end": 0.96
+            },
+            {
+              "start": 1.04,
+              "end": 1.12
+            },
+            {
+              "start": 1.16,
+              "end": 1.2
+            },
+            {
+              "start": 1.28,
+              "end": 1.36
+            },
+            {
+              "start": 1.44,
+              "end": 2.12
+            },
+            {
+              "start": 2.32,
+              "end": 2.4
+            },
+            {
+              "start": 2.48,
+              "end": 2.88
+            },
+            {
+              "start": 2.92,
+              "end": 2.96
+            },
+            {
+              "start": 3.04,
+              "end": 3.92
+            }
+          ]
         },
         {
           "text": "Any secret you put in it, a token, a password, can be sent away by the code you run, or by an agent tricked into doing it.",
-          "file": "voice/risks/inside-1.wav",
-          "duration": 6.861
+          "file": "voice/risks/inside-1.mp3",
+          "duration": 8.516,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.32
+            },
+            {
+              "start": 0.4,
+              "end": 0.8
+            },
+            {
+              "start": 0.88,
+              "end": 0.96
+            },
+            {
+              "start": 1.04,
+              "end": 1.12
+            },
+            {
+              "start": 1.2,
+              "end": 1.28
+            },
+            {
+              "start": 1.36,
+              "end": 1.76
+            },
+            {
+              "start": 1.8,
+              "end": 1.84
+            },
+            {
+              "start": 1.92,
+              "end": 2.48
+            },
+            {
+              "start": 2.52,
+              "end": 2.56
+            },
+            {
+              "start": 2.64,
+              "end": 3.6
+            },
+            {
+              "start": 3.68,
+              "end": 3.76
+            },
+            {
+              "start": 3.84,
+              "end": 3.92
+            },
+            {
+              "start": 4.04,
+              "end": 4.16
+            },
+            {
+              "start": 4.36,
+              "end": 4.56
+            },
+            {
+              "start": 4.64,
+              "end": 4.72
+            },
+            {
+              "start": 4.76,
+              "end": 4.8
+            },
+            {
+              "start": 4.88,
+              "end": 5.12
+            },
+            {
+              "start": 5.2,
+              "end": 5.28
+            },
+            {
+              "start": 5.36,
+              "end": 5.92
+            },
+            {
+              "start": 6.04,
+              "end": 6.16
+            },
+            {
+              "start": 6.32,
+              "end": 6.4
+            },
+            {
+              "start": 6.48,
+              "end": 6.64
+            },
+            {
+              "start": 6.72,
+              "end": 7.12
+            },
+            {
+              "start": 7.2,
+              "end": 7.52
+            },
+            {
+              "start": 7.6,
+              "end": 7.84
+            },
+            {
+              "start": 7.96,
+              "end": 8.08
+            },
+            {
+              "start": 8.16,
+              "end": 8.56
+            }
+          ]
         }
       ]
     },
@@ -62,13 +540,121 @@
       "lines": [
         {
           "text": "A box can also be turned against others: mining, spam, attacks.",
-          "file": "voice/risks/abuse-0.wav",
-          "duration": 4.191
+          "file": "voice/risks/abuse-0.mp3",
+          "duration": 5.486,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.16
+            },
+            {
+              "start": 0.32,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 0.72
+            },
+            {
+              "start": 0.8,
+              "end": 1.04
+            },
+            {
+              "start": 1.12,
+              "end": 1.28
+            },
+            {
+              "start": 1.4,
+              "end": 1.52
+            },
+            {
+              "start": 1.6,
+              "end": 1.92
+            },
+            {
+              "start": 2.0,
+              "end": 2.88
+            },
+            {
+              "start": 2.96,
+              "end": 3.76
+            },
+            {
+              "start": 4.0,
+              "end": 4.56
+            },
+            {
+              "start": 4.88,
+              "end": 5.52
+            }
+          ]
         },
         {
           "text": "That is why its bandwidth is capped, and outgoing mail on port twenty-five is blocked.",
-          "file": "voice/risks/abuse-1.wav",
-          "duration": 4.354
+          "file": "voice/risks/abuse-1.mp3",
+          "duration": 5.721,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.24
+            },
+            {
+              "start": 0.32,
+              "end": 0.4
+            },
+            {
+              "start": 0.48,
+              "end": 0.64
+            },
+            {
+              "start": 0.72,
+              "end": 0.88
+            },
+            {
+              "start": 0.96,
+              "end": 1.52
+            },
+            {
+              "start": 1.6,
+              "end": 1.68
+            },
+            {
+              "start": 1.76,
+              "end": 2.4
+            },
+            {
+              "start": 2.52,
+              "end": 2.64
+            },
+            {
+              "start": 2.72,
+              "end": 3.2
+            },
+            {
+              "start": 3.28,
+              "end": 3.52
+            },
+            {
+              "start": 3.6,
+              "end": 3.68
+            },
+            {
+              "start": 3.84,
+              "end": 4.0
+            },
+            {
+              "start": 4.08,
+              "end": 4.8
+            },
+            {
+              "start": 4.88,
+              "end": 4.96
+            },
+            {
+              "start": 5.04,
+              "end": 5.76
+            }
+          ]
         }
       ]
     },
@@ -77,13 +663,133 @@
       "lines": [
         {
           "text": "So a sandbox doesn't make code trustworthy. It decides how far the damage can go.",
-          "file": "voice/risks/end-0.wav",
-          "duration": 4.098
+          "file": "voice/risks/end-0.mp3",
+          "duration": 6.191,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.24
+            },
+            {
+              "start": 0.32,
+              "end": 0.48
+            },
+            {
+              "start": 0.56,
+              "end": 1.2
+            },
+            {
+              "start": 1.28,
+              "end": 1.52
+            },
+            {
+              "start": 1.64,
+              "end": 1.76
+            },
+            {
+              "start": 1.84,
+              "end": 2.16
+            },
+            {
+              "start": 2.24,
+              "end": 3.24
+            },
+            {
+              "start": 3.52,
+              "end": 3.6
+            },
+            {
+              "start": 3.72,
+              "end": 4.16
+            },
+            {
+              "start": 4.32,
+              "end": 4.48
+            },
+            {
+              "start": 4.56,
+              "end": 4.8
+            },
+            {
+              "start": 4.88,
+              "end": 4.92
+            },
+            {
+              "start": 4.96,
+              "end": 5.28
+            },
+            {
+              "start": 5.36,
+              "end": 5.52
+            },
+            {
+              "start": 5.6,
+              "end": 6.24
+            }
+          ]
         },
         {
           "text": "Give each box only what it needs, and keep the walls up to date.",
-          "file": "voice/risks/end-1.wav",
-          "duration": 3.251
+          "file": "voice/risks/end-1.mp3",
+          "duration": 4.598,
+          "words": [
+            {
+              "start": 0.0,
+              "end": 0.24
+            },
+            {
+              "start": 0.32,
+              "end": 0.48
+            },
+            {
+              "start": 0.64,
+              "end": 0.96
+            },
+            {
+              "start": 1.12,
+              "end": 1.36
+            },
+            {
+              "start": 1.44,
+              "end": 1.52
+            },
+            {
+              "start": 1.6,
+              "end": 1.68
+            },
+            {
+              "start": 1.76,
+              "end": 2.48
+            },
+            {
+              "start": 2.56,
+              "end": 2.8
+            },
+            {
+              "start": 2.96,
+              "end": 3.12
+            },
+            {
+              "start": 3.16,
+              "end": 3.2
+            },
+            {
+              "start": 3.28,
+              "end": 3.68
+            },
+            {
+              "start": 3.76,
+              "end": 3.84
+            },
+            {
+              "start": 3.92,
+              "end": 4.0
+            },
+            {
+              "start": 4.08,
+              "end": 4.64
+            }
+          ]
         }
       ]
     }
